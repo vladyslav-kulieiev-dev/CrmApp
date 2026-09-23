@@ -1,0 +1,206 @@
+.w-100 {
+  width: 100vw;
+}
+
+.ml-16 {
+  margin-left: 16px;
+}
+
+.ml-3 {
+  margin-left: 1rem !important;
+}
+
+.users-button-option .mdc-checkbox {
+  padding: 2px !important;
+}
+
+.users-button-option .mdc-checkbox {
+  padding: 2px !important;
+}
+
+.users-menu {
+  padding: 6px 10px;
+  max-height: min(48vh, 420px);
+  overflow: auto;
+}
+
+.header {
+  background-color: var(--crm-header-background) !important;
+}
+
+.title-as-input {
+  all: unset;
+  /* strip default input styles */
+  display: block;
+  /* min-width: 25vw; */
+  font: inherit;
+  /* inherit font-size/weight from .title */
+  letter-spacing: inherit;
+  caret-color: currentColor;
+  text-align: start;
+  border-radius: 6px;
+}
+
+/* visible focus ring for accessibility (keeps the UI “unchanged” otherwise) */
+.title-as-input:focus {
+  outline: 2px solid color-mix(in oklab, var(--mat-sys-primary) 15%, transparent);
+  outline-offset: 4px;
+}
+
+/* optional placeholder look */
+.title-as-input::placeholder {
+  opacity: .5;
+}
+
+.border-left {
+  border-left: 2px solid var(--mat-sys-secondary);
+}
+
+.tag-list {
+  width: 100%;
+}
+
+.header-title {
+  font-size: 1rem !important;
+}
+
+.header-icon.mat-mdc-mini-fab {
+  width: 36px !important;
+  height: 36px !important;
+}
+
+@media (max-width: 480px) {
+
+  .title-as-input,
+  .header-title {
+    width: 45vw !important;
+    text-align: left !important;
+    font-size: 0.95rem !important;
+  }
+}
+
+/* .menu-btn {
+  border-radius: var(--mat-button-toggle-shape, var(--mat-sys-corner-extra-large));
+  border: solid 1px var(--mat-button-toggle-divider-color, var(--mat-sys-outline));
+  margin-top: 4px;
+} */
+
+.user-menu {
+  min-width: 240px;
+}
+
+.menu-section-title {
+  font-size: 0.55rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  cursor: default !important;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+.menu-btn {
+  border-radius: 999px;
+  margin: 2px 4px;
+}
+
+::ng-deep .menu-btn mat-icon {
+  margin-right: 8px;
+  color: var(--crm-sys-text) !important;
+  fill: var(--crm-sys-text) !important;
+}
+
+::ng-deep .user-menu button.mat-mdc-menu-item {
+  min-height: 32px !important;
+  height: 32px !important;
+}
+
+.channels-toggle .spacer {
+  flex: 1 1 auto;
+}
+
+.channels-toggle .chevron {
+  transition: transform 0.15s ease-out;
+}
+
+.channels-toggle .chevron.open {
+  transform: rotate(180deg);
+}
+
+.channels-submenu {
+  padding-left: 20px;
+  /* lekkie wcięcie pod głównym przyciskiem */
+}
+
+/* pojedynczy kanał */
+.channel-item {
+  padding-left: 8px;
+}
+
+.channel-hash {
+  margin-right: 4px;
+  opacity: 0.7;
+}
+
+.channel-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.info {
+  font-weight: 400;
+  text-transform: none !important;
+  cursor: default !important;
+}
+
+.logged-user {
+  padding-top: 12px !important;
+}
+
+.header-focus {
+  font-size: 1rem !important;
+  max-width: 30vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 4px 10px;
+  border-radius: 999px;
+  /* background: color-mix(in srgb, var(--mat-sys-primary-container) 30%, transparent); */
+  /* color: var(--mat-sys-on-primary-container); */
+}
+
+.focus-sep {
+  opacity: .5;
+}
+
+.submenu-arrow {
+  font-size: 18px !important;
+  width: 18px !important;
+  height: 18px !important;
+  ;
+  opacity: .6 !important;
+  flex-shrink: 0 !important;
+}
+
+.section-trigger {
+  font-weight: 500;
+
+  mat-icon:first-child {
+    color: var(--mat-sys-primary);
+    opacity: .8;
+  }
+}
+
+.logout-btn {
+  color: var(--mat-sys-error);
+
+  mat-icon {
+    color: var(--mat-sys-error);
+  }
+}
+
+.spacer {
+  flex: 1;
+}

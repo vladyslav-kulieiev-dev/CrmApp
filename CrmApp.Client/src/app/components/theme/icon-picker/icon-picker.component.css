@@ -1,0 +1,13 @@
+.pretty-menu {
+    padding: 6px 10px;
+    /* max-height: min(48vh, 420px); */
+    overflow: auto;
+}
+
+::ng-deep .mat-mdc-menu-panel.emoji-menu {
+    max-width: 500px !important;
+}
+
+.transparent { 
+    background-color: transparent !important;
+}

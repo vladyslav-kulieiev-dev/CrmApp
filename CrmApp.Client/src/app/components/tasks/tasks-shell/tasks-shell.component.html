@@ -1,0 +1,47 @@
+<crm-header [headerSubpageTitle]="'CRM'"></crm-header>
+<mat-sidenav-container class="tasks-shell">
+
+  <mat-sidenav-content class="tasks-content">
+
+    <div class="tasks-header">
+      <div class="header-tabs">
+        <button mat-button [class.tab-active]="activeTab() === 'my'" (click)="navigateTo('my')">
+          <mat-icon svgIcon="task" style="line-height:0"></mat-icon>
+          Moje zadania
+        </button>
+        <button mat-button [class.tab-active]="activeTab() === 'admin'" (click)="navigateTo('admin')">
+          <mat-icon svgIcon="business_center" style="line-height:0"></mat-icon>
+          Wszystkie zadania
+        </button>
+      </div>
+      <div class="header-actions">
+        <button matButton="tonal" class="pill pill-sm mx-2" (click)="openCreate()">
+          <mat-icon svgIcon="add_circle" style="line-height:0"></mat-icon>
+          Nowe zadanie
+        </button>
+        <button matButton="tonal" class="pill pill-sm" (click)="syncWithZohoDesk()">
+          <mat-icon svgIcon="cloud_sync" style="line-height:0"></mat-icon>
+          Synchronizuj z ZohoDesk
+        </button>
+      </div>
+    </div>
+
+    <div class="tasks-body">
+      <router-outlet (activate)="onActivate($event)"></router-outlet>
+    </div>
+
+  </mat-sidenav-content>
+
+  <!-- jeden komponent dla create i edit -->
+  <mat-sidenav #taskSidenav mode="over" position="end" class="detail-sidenav">
+    <crm-task-form
+      *ngIf="taskSidenav.opened"
+      [task]="selectedTask()"
+      (saved)="onTaskSaved($event)"
+      (taskUpdated)="onTaskUpdated($event)"
+      (close)="closeSidenav()"
+      (cancelled)="closeSidenav()">
+    </crm-task-form>
+  </mat-sidenav>
+
+</mat-sidenav-container>

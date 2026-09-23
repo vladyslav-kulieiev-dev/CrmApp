@@ -1,0 +1,112 @@
+<crm-header [headerSubpageTitle]="'Kontrahenci'"></crm-header>
+
+<div class="page">
+  <mat-sidenav-container class="crm-container">
+
+    <mat-sidenav-content class="content">
+      @if (tableConfig()) {
+        <crm-table
+          [config]="tableConfig()!"
+          [pagedData]="pagedData()"
+          [loading]="loading()"
+          storageKey="contractors"
+          (stateChange)="onStateChange($event)">
+          <!-- (rowClick)="editContractor($event)" -->
+          <div crmTableToolbar>
+            @if (canContractorsCreate) {
+            <button matButton="tonal" class="pill-sm mx-1" (click)="addContractor()">
+              <mat-icon svgIcon="add"></mat-icon>
+              @if (!(isMobile$ | async)) { Nowy }
+            </button>
+          }
+
+          @if (!(isMobile$ | async)) {
+            @if (canContractorsCreate) {
+              <button matButton="tonal" class="pill-sm mx-1" (click)="fileInput.click()">
+                <mat-icon svgIcon="upload"></mat-icon>
+                Import .csv
+              </button>
+              <input #fileInput type="file" accept=".csv"
+                     style="display:none" (change)="onFileSelected($event)">
+              @if (selectedFile) {
+                <span class="file-name">{{ selectedFile.name }}</span>
+                <button mat-icon-button (click)="cancelUpload(fileInput)"
+                        matTooltip="Anuluj">
+                  <mat-icon svgIcon="close"></mat-icon>
+                </button>
+                <button mat-icon-button (click)="importContractors(fileInput)"
+                        matTooltip="Importuj">
+                  <mat-icon svgIcon="check_circle"></mat-icon>
+                </button>
+              }
+            }
+          }
+          </div>
+        </crm-table>
+      }
+
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+</div>
+
+<!-- ── Custom cell templates ─────────────────────────────────────── -->
+
+<ng-template #nameCellTpl let-row>
+  <div class="cell-primary">{{ row.displayName }}</div>
+  @if (row.displayName !== row.name) {
+    <div class="cell-secondary">{{ row.name }}</div>
+  }
+</ng-template>
+
+<ng-template #codeCellTpl let-row>
+  <span class="code-chip"
+        (click)="copy(row.code, $event)"
+        matTooltip="Kliknij aby skopiować">
+    {{ row.code }}
+  </span>
+</ng-template>
+
+<ng-template #engagementCellTpl let-row>
+  <div class="chips-row">
+    @for (type of row.activeEngagementTypes; track type) {
+      <span class="engagement-chip">
+        {{ engagementTypeLabel(type) }}
+      </span>
+    }
+    @if (row.activeEngagementTypes.length === 0) { — }
+  </div>
+</ng-template>
+
+<ng-template #hoursCellTpl let-row>
+  @if (row.hoursLimit != null) {
+    <div class="hours-cell"
+         [class.hours-warning]="hasHoursWarning(row)"
+         [matTooltip]="'Wykorzystano: ' + row.hoursUsed + ' / ' + row.hoursLimit">
+      <div class="hours-bar">
+        <div class="hours-fill"
+             [style.width.%]="(row.hoursUsed / row.hoursLimit) * 100">
+        </div>
+      </div>
+      <span class="hours-label">
+        {{ row.hoursRemaining | number:'1.0-1' }} h
+      </span>
+    </div>
+  } @else { — }
+</ng-template>
+
+<ng-template #actionsCellTpl let-row>
+  <div class="row-actions">
+    <button mat-icon-button class="mat-icon-button-medium"
+            matTooltip="Edytuj"
+            (click)="editContractor(row); $event.stopPropagation()">
+      <mat-icon svgIcon="edit"></mat-icon>
+    </button>
+    @if (canContractorsDelete) {
+      <button mat-icon-button class="mat-icon-button-medium"
+              matTooltip="Usuń"
+              (click)="deleteContractor(row, $event)">
+        <mat-icon svgIcon="delete" class="icon-danger"></mat-icon>
+      </button>
+    }
+  </div>
+</ng-template>

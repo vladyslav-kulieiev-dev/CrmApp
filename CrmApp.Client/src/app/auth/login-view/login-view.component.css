@@ -1,0 +1,83 @@
+/* Layout shell */
+.auth-shell {
+  min-height: 80vh;
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+  background: var(--mat-sys-color-surface);
+  color: var(--mat-sys-color-on-surface);
+}
+
+/* Brand section */
+.brand {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.brand-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--mat-sys-color-primary-container);
+  color: var(--mat-sys-color-on-primary-container);
+  box-shadow: 0 1px 2px rgba(0,0,0,.05);
+  mat-icon { font-size: 28px; height: 28px; width: 28px; }
+}
+
+.brand-title {
+  margin: 0;
+  font-weight: 700;
+  font-size: 2rem; /* ~32px */
+  letter-spacing: .2px;
+  color: var(--mat-sys-color-on-surface);
+}
+
+.brand-tagline {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--mat-sys-color-on-surface-variant);
+}
+
+/* Card */
+.login-card {
+  width: min(540px, 92vw);
+  padding: 20px 20px 24px;
+  border-radius: 14px;
+  /* border-color: color-mix(in oklab, var(--mat-sys-color-outline) 14%, transparent); */
+  backdrop-filter: saturate(1.1);
+  text-align: center;
+}
+
+/* Card headings */
+.card-title {
+  margin: 4px 0 2px;
+  font-weight: 700;
+  color: var(--mat-sys-color-on-surface);
+}
+
+.card-subtitle {
+  margin: 0 0 12px;
+  color: var(--mat-sys-color-on-surface-variant);
+}
+
+/* Form */
+.login-form {
+  display: grid;
+  gap: 16px;
+}
+
+.sign-in-btn {
+  width: 100%;
+  height: 44px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+/* Responsive tweak for very small screens */
+@media (max-width: 360px) {
+  .brand-title { font-size: 1.6rem; }
+}

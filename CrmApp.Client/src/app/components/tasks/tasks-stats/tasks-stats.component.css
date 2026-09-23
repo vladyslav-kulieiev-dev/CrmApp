@@ -1,0 +1,239 @@
+:host {
+  display: block;
+}
+
+.stats-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ── karty podsumowania ── */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 18px;
+  border: 1px solid color-mix(in srgb, var(--crm-sys-text) 8%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--crm-sys-background) 98%, white);
+}
+
+.stat-num {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--crm-sys-text);
+}
+
+.stat-lbl {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--crm-sys-text) 50%, transparent);
+}
+
+.stat-card.stat-blue  .stat-num { color: var(--mat-sys-primary); }
+.stat-card.stat-green .stat-num { color: #3B6D11; }
+.stat-card.stat-red   .stat-num { color: var(--mat-sys-error); }
+.stat-card.stat-neutral .stat-num {
+  color: color-mix(in srgb, var(--crm-sys-text) 70%, transparent);
+}
+
+/* ── sekcja breakdown ── */
+.breakdown-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.breakdown-card,
+.workload-card {
+  padding: 16px 18px;
+  border: 1px solid color-mix(in srgb, var(--crm-sys-text) 8%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--crm-sys-background) 98%, white);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.breakdown-title {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--crm-sys-text) 50%, transparent);
+}
+
+.breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.breakdown-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.breakdown-label-row {
+  display: grid;
+  grid-template-columns: 100px auto;
+  gap: 8px;
+  min-width: 0;
+}
+
+.breakdown-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--crm-sys-text);
+  min-width: 28px;
+}
+
+.breakdown-bar-bg {
+  width: 100px;
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--crm-sys-text) 8%, transparent);
+  overflow: hidden;
+}
+
+.breakdown-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 400ms ease;
+  background: color-mix(in srgb, var(--crm-sys-text) 25%, transparent);
+}
+
+/* kolory pasków — dopasowane do badge */
+.badge-todo-bar     { background: color-mix(in srgb, var(--crm-sys-text) 30%, transparent); }
+.badge-progress-bar { background: var(--mat-sys-primary); }
+.badge-done-bar     { background: #3B6D11; }
+.badge-urgent-bar   { background: var(--mat-sys-error); }
+.badge-normal-bar   { background: var(--mat-sys-tertiary); }
+.badge-low-bar      { background: color-mix(in srgb, var(--crm-sys-text) 25%, transparent); }
+
+.breakdown-pct {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--crm-sys-text) 45%, transparent);
+  min-width: 34px;
+  text-align: right;
+}
+
+.breakdown-empty {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--crm-sys-text) 35%, transparent);
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* ── workload ── */
+.workload-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workload-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.workload-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.workload-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+
+.workload-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--crm-sys-text);
+}
+
+.workload-meta {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--crm-sys-text) 50%, transparent);
+  display: flex;
+  gap: 4px;
+}
+
+.overdue-tag {
+  color: var(--mat-sys-error);
+}
+
+.workload-bar-bg {
+  height: 6px;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--crm-sys-text) 8%, transparent);
+  overflow: hidden;
+}
+
+.workload-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--mat-sys-primary);
+  transition: width 400ms ease;
+
+  &.bar-overloaded { background: var(--mat-sys-error); }
+}
+
+.workload-pct {
+  font-size: 12px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--crm-sys-text) 55%, transparent);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* ── avatar ── */
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 70%, transparent);
+  color: var(--crm-sys-text);
+}
+
+/* ── badges (miniatura) ── */
+.badge {
+  text-align: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-todo     { background: color-mix(in srgb, var(--crm-sys-text) 10%, transparent); color: color-mix(in srgb, var(--crm-sys-text) 70%, transparent); }
+.badge-progress { background: color-mix(in srgb, var(--mat-sys-primary) 15%, transparent); color: var(--mat-sys-primary); }
+.badge-done     { background: color-mix(in srgb, #3B6D11 12%, transparent); color: #3B6D11; }
+.badge-urgent   { background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent); color: var(--mat-sys-error); }
+.badge-normal   { background: color-mix(in srgb, var(--mat-sys-tertiary) 15%, transparent); color: var(--mat-sys-tertiary); }
+.badge-low      { background: color-mix(in srgb, var(--crm-sys-text) 8%, transparent); color: color-mix(in srgb, var(--crm-sys-text) 55%, transparent); }
+
+/* ── responsive ── */
+@media (max-width: 700px) {
+  .breakdown-row { grid-template-columns: 1fr; }
+  .breakdown-bar-bg { width: 70px; }
+}

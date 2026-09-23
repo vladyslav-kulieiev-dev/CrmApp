@@ -1,0 +1,110 @@
+<div class="stats-panel">
+
+  <!-- ── karty podsumowania ── -->
+  <div class="summary-cards">
+    <div class="stat-card">
+      <span class="stat-num">{{ summary.total }}</span>
+      <span class="stat-lbl">Łącznie</span>
+    </div>
+    <div class="stat-card stat-blue">
+      <span class="stat-num">{{ summary.inProgress }}</span>
+      <span class="stat-lbl">W toku</span>
+    </div>
+    <div class="stat-card stat-green">
+      <span class="stat-num">{{ summary.done }}</span>
+      <span class="stat-lbl">Ukończone</span>
+    </div>
+    <div class="stat-card stat-red">
+      <span class="stat-num">{{ summary.overdue }}</span>
+      <span class="stat-lbl">Przeterminowane</span>
+    </div>
+    <div class="stat-card stat-neutral">
+      <span class="stat-num">{{ summary.avgProgress }}%</span>
+      <span class="stat-lbl">Śr. postęp</span>
+    </div>
+    <div class="stat-card stat-neutral" *ngIf="summary.unassigned > 0">
+      <span class="stat-num">{{ summary.unassigned }}</span>
+      <span class="stat-lbl">Nieprzypisane</span>
+    </div>
+  </div>
+
+  <!-- ── podziały ── -->
+  <div class="breakdown-row">
+
+    <!-- wg statusu -->
+    <div class="breakdown-card">
+      <span class="breakdown-title">Według statusu</span>
+      <div class="breakdown-list">
+        <div class="breakdown-item" *ngFor="let s of byStatus">
+          <div class="breakdown-label-row">
+            <span class="badge" [ngClass]="s.cssClass">{{ s.label }}</span>
+            <span class="breakdown-count">{{ s.count }}</span>
+          </div>
+          <div class="breakdown-bar-bg">
+            <div class="breakdown-bar-fill"
+                 [ngClass]="s.cssClass + '-bar'"
+                 [style.width.%]="s.percent">
+            </div>
+          </div>
+          <span class="breakdown-pct">{{ s.percent }}%</span>
+        </div>
+        <div class="breakdown-empty" *ngIf="byStatus.length === 0">
+          Brak danych
+        </div>
+      </div>
+    </div>
+
+    <!-- wg priorytetu -->
+    <div class="breakdown-card">
+      <span class="breakdown-title">Według priorytetu</span>
+      <div class="breakdown-list">
+        <div class="breakdown-item" *ngFor="let p of byPriority">
+          <div class="breakdown-label-row">
+            <span class="badge" [ngClass]="p.cssClass">{{ p.label }}</span>
+            <span class="breakdown-count">{{ p.count }}</span>
+          </div>
+          <div class="breakdown-bar-bg">
+            <div class="breakdown-bar-fill"
+                 [ngClass]="p.cssClass + '-bar'"
+                 [style.width.%]="p.percent">
+            </div>
+          </div>
+          <span class="breakdown-pct">{{ p.percent }}%</span>
+        </div>
+        <div class="breakdown-empty" *ngIf="byPriority.length === 0">
+          Brak danych
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── obciążenie zespołu ── -->
+  <div class="workload-card" *ngIf="showWorkload && workload.length">
+    <span class="breakdown-title">Obciążenie zespołu</span>
+    <div class="workload-list">
+      <div class="workload-row" *ngFor="let u of workload">
+        <div class="avatar">{{ u.initials }}</div>
+        <div class="workload-info">
+          <div class="workload-header">
+            <span class="workload-name">{{ u.fullName }}</span>
+            <div class="workload-meta">
+              <span>{{ u.totalTasks }} zad.</span>
+              <span class="overdue-tag" *ngIf="u.overdueTasks > 0">
+                · {{ u.overdueTasks }} przeter.
+              </span>
+            </div>
+          </div>
+          <div class="workload-bar-bg">
+            <div class="workload-bar-fill"
+                 [class.bar-overloaded]="u.workloadPercent > 70"
+                 [style.width.%]="u.workloadPercent">
+            </div>
+          </div>
+        </div>
+        <span class="workload-pct">{{ u.workloadPercent }}%</span>
+      </div>
+    </div>
+  </div>
+
+</div>

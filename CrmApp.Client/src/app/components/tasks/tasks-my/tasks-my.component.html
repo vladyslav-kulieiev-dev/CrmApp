@@ -1,0 +1,254 @@
+<div class="my-panel">
+
+  <!-- ── toolbar ── -->
+  <div class="toolbar">
+    <div class="view-toggle">
+      <button [class.active]="viewMode() === 'list'" (click)="setView('list')">
+        <mat-icon svgIcon="list"></mat-icon> Lista
+      </button>
+      <button [class.active]="viewMode() === 'kanban'" (click)="setView('kanban')">
+        <mat-icon svgIcon="view_kanban"></mat-icon> Kanban
+      </button>
+      <button [class.active]="viewMode() === 'grid'" (click)="setView('grid')">
+        <mat-icon svgIcon="view_column"></mat-icon> Tabela
+      </button>
+      <button [class.active]="viewMode() === 'stats'" (click)="setView('stats')">
+        <mat-icon svgIcon="finance_mode"></mat-icon> Statystyki
+      </button>
+    </div>
+
+    <button mat-button class="pill-toggle" [class.pill-active]="onlyMine()" (click)="toggleMine()">
+      <mat-icon svgIcon="person"></mat-icon>
+      {{ onlyMine() ? 'Tylko moje' : 'Wszystkie' }}
+    </button>
+
+    <!-- filtry Status i Priorytet — ukryte w widoku tabeli (crm-table ma własne) -->
+    <ng-container *ngIf="viewMode() !== 'grid'">
+      <mat-form-field appearance="outline" class="filter-field compact-field ellipsis-input">
+        <mat-label>Status</mat-label>
+        <mat-select (selectionChange)="setFilter({ state: $event.value })">
+          <mat-option [value]="null">— wszystkie —</mat-option>
+          <mat-option *ngFor="let s of tasksStates()" [value]="s.value">{{ s.key }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field compact-field ellipsis-input">
+        <mat-label>Priorytet</mat-label>
+        <mat-select (selectionChange)="setFilter({ priority: $event.value })">
+          <mat-option [value]="null">— wszystkie —</mat-option>
+          <mat-option *ngFor="let p of tasksPriorities()" [value]="p.value">{{ p.key }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </ng-container>
+
+    <div class="grid-summary-row" *ngIf="viewMode() !== 'stats'">
+      <div class="summary-card">
+        <span class="summary-num">{{ gridSummary().total }}</span>
+        <span class="summary-lbl">Zadań łącznie</span>
+      </div>
+      <div class="summary-card summary-blue">
+        <span class="summary-num">{{ gridSummary().inProgress }}</span>
+        <span class="summary-lbl">W toku</span>
+      </div>
+      <div class="summary-card summary-green">
+        <span class="summary-num">{{ gridSummary().done }}</span>
+        <span class="summary-lbl">Ukończone</span>
+      </div>
+      <div class="summary-card summary-red" *ngIf="gridSummary().overdue > 0">
+        <span class="summary-num">{{ gridSummary().overdue }}</span>
+        <span class="summary-lbl">Przeterminowane</span>
+      </div>
+      <div class="summary-card summary-neutral">
+        <span class="summary-num">{{ gridSummary().avgProgress }}%</span>
+        <span class="summary-lbl">Śr. postęp</span>
+      </div>
+    </div>
+
+    <span class="spacer"></span>
+    <span class="total-label">{{ total() }} zadań</span>
+
+    <!-- export — widoczne tylko w widoku tabeli -->
+    <ng-container *ngIf="viewMode() === 'grid'">
+      <button class="export-btn" (click)="exportCsv()" matTooltip="Eksportuj do CSV">
+        <mat-icon svgIcon="download"></mat-icon>
+        CSV
+      </button>
+      <button class="export-btn export-btn-excel" (click)="exportExcel()" matTooltip="Eksportuj do Excel">
+        <mat-icon svgIcon="view_column"></mat-icon>
+        Excel
+      </button>
+    </ng-container>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       WIDOK LISTY
+       ══════════════════════════════════════════ -->
+  <div class="list-view" *ngIf="viewMode() === 'list'">
+    <ng-container *ngIf="tasks().length; else emptyState">
+      <button type="button" class="task-row" *ngFor="let t of tasks()" (click)="onTaskClick(t)">
+        <div class="state-dot" [ngClass]="stateDotClass(t.state)"></div>
+        <div class="row-main">
+          <div class="row-top">
+            <span class="row-title">{{ t.title }}</span>
+            <span class="badge badge-imported" *ngIf="t.importedTaskNumber">
+              <div *ngIf="t.isDeleted">
+                Usunięte w Zoho Desk
+              </div>
+              <div *ngIf="!t.isDeleted">
+                Import · {{ t.importedTaskNumber }}
+              </div> 
+            </span>
+          </div>
+          <div class="row-meta">
+            <span class="badge" [ngClass]="stateClass(t.state)">{{ stateLabel(t.state) }}</span>
+            <span class="badge" [ngClass]="priorityClass(t.priority)">{{ priorityLabel(t.priority) }}</span>
+            <span class="meta-text" *ngIf="t.contractorName">{{ t.contractorName }}</span>
+            <span class="meta-sep" *ngIf="t.contractorName && t.projectName">·</span>
+            <span class="meta-text" *ngIf="t.projectName">{{ t.projectName }}</span>
+          </div>
+        </div>
+        <div class="row-right">
+          <div class="progress-wrap">
+            <mat-progress-bar mode="determinate" [value]="t.progress"></mat-progress-bar>
+            <span class="pct">{{ t.progress }}%</span>
+          </div>
+          <span class="due-date" [class.overdue]="isDueDateOverdue(t.dueDate)">
+            {{ t.dueDate ? (t.dueDate | date:'d MMM') : '' }}
+          </span>
+        </div>
+      </button>
+    </ng-container>
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <mat-icon svgIcon="task"></mat-icon>
+        <p>Brak zadań</p>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       WIDOK KANBAN
+       ══════════════════════════════════════════ -->
+  <div class="kanban-view" *ngIf="viewMode() === 'kanban'"
+    [style.grid-template-columns]="'repeat(' + kanbanColumns().length + ', minmax(0, 1fr))'">
+
+    <div class="kanban-col" *ngFor="let col of kanbanColumns()"
+      cdkDropList [cdkDropListData]="tasksByState(col.key)"
+      [cdkDropListConnectedTo]="dropLists"
+      (cdkDropListDropped)="onKanbanDrop($event, col.key)">
+
+      <div class="col-header" [style]="{
+           padding: sideNavOpen ? '4px 0px 10px' : '4px 4px 10px',
+           justifyContent: sideNavOpen ? 'center' : 'space-between'
+         }">
+        <span class="col-title">
+          {{ col.label }}
+        </span>
+        <span *ngIf="!sideNavOpen" class="badge col-count" [ngClass]="col.badgeClass">
+          {{ tasksByState(col.key).length }}
+        </span>
+      </div>
+
+      <button type="button" class="kanban-card" *ngFor="let t of tasksByState(col.key)"
+        cdkDrag [cdkDragData]="t" (click)="onTaskClick(t)">
+        <div class="card-title">
+          <div class="avatar av-sm">
+            {{ t.assignedToFullName | slice:0:1 }}{{ ((t.assignedToFullName ?? '').split(' ')[1] || '') | slice:0:1 }}
+          </div>
+          {{ t.title }}
+        </div>
+        <div *ngIf="!sideNavOpen" class="card-meta">
+          <span class="badge" [ngClass]="priorityClass(t.priority)">{{ priorityLabel(t.priority) }}</span>
+          <span class="badge badge-imported" *ngIf="t.importedTaskNumber && !t.isDeleted">Import</span>
+          <span class="badge badge-imported" *ngIf="t.importedTaskNumber && t.isDeleted">Usunięte w Zoho Desk</span>
+          <span class="due-date" [class.overdue]="isDueDateOverdue(t.dueDate)">
+            {{ t.dueDate ? (t.dueDate | date:'d MMM') : '' }}
+          </span>
+        </div>
+        <mat-progress-bar mode="determinate" [value]="t.progress" class="card-progress"></mat-progress-bar>
+        <div *cdkDragPlaceholder class="drag-placeholder"></div>
+      </button>
+
+      <div class="kanban-empty" *ngIf="tasksByState(col.key).length === 0">Brak zadań</div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       WIDOK TABELA (crm-table)
+       ══════════════════════════════════════════ -->
+  <div class="grid-view" *ngIf="viewMode() === 'grid'">
+
+    <!-- crm-table -->
+    @if (tableConfig()) {
+      <crm-table
+        [config]="tableConfig()!"
+        [data]="tasks()"
+        [loading]="loading()"
+        storageKey="tasks-my"
+        (rowClick)="onTaskClick($event)">
+      </crm-table>
+    }
+  </div>
+  <!-- ══════════════════════════════════════════
+       WIDOK STATYSTYKI
+       ══════════════════════════════════════════ -->
+  <div class="stats-view" *ngIf="viewMode() === 'stats'">
+    <crm-tasks-stats
+      [tasks]="tasks()"
+      [total]="total()"
+      [tasksStates]="tasksStates()"
+      [tasksPriorities]="tasksPriorities()"
+      [showWorkload]="!onlyMine()">
+    </crm-tasks-stats>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SZABLONY KOMÓREK dla crm-table
+     Muszą być poza *ngIf żeby @ViewChild(static:true) je znalazł
+     ══════════════════════════════════════════════════════════════ -->
+
+<ng-template #titleCellTpl let-row>
+  <span class="cell-title">{{ row.title }}</span>
+  <span class="cell-sub" *ngIf="row.importedTaskNumber && !row.isDeleted">Import · {{ row.importedTaskNumber }}</span>
+  <span class="cell-sub" *ngIf="row.importedTaskNumber && row.isDeleted">Usunięte w Zoho Desk</span>
+</ng-template>
+
+<ng-template #assigneeCellTpl let-row>
+  <div class="cell-assignee" *ngIf="row.assignedToFullName">
+    <div class="avatar av-sm">
+      {{ row.assignedToFullName | slice:0:1 }}{{ (row.assignedToFullName?.split(' ')[1] || '') | slice:0:1 }}
+    </div>
+    <span class="cell-dim">{{ row.assignedToFullName }}</span>
+  </div>
+  <span class="cell-empty" *ngIf="!row.assignedToFullName">—</span>
+</ng-template>
+
+<ng-template #stateCellTpl let-row>
+  <span class="badge" [ngClass]="stateClass(row.state)">{{ stateLabel(row.state) }}</span>
+</ng-template>
+
+<ng-template #priorityCellTpl let-row>
+  <span class="badge" [ngClass]="priorityClass(row.priority)">{{ priorityLabel(row.priority) }}</span>
+</ng-template>
+
+<ng-template #progressCellTpl let-row>
+  <div class="cell-progress">
+    <mat-progress-bar mode="determinate" [value]="row.progress"></mat-progress-bar>
+    <span class="cell-pct">{{ row.progress }}%</span>
+  </div>
+</ng-template>
+
+<ng-template #dueDateCellTpl let-row>
+  <span [class.cell-overdue]="isDueDateOverdue(row.dueDate)">
+    {{ row.dueDate ? (row.dueDate | date:'d MMM yyyy') : '—' }}
+  </span>
+</ng-template>
+
+<ng-template #actionsCellTpl let-row>
+  <button mat-icon-button class="mat-icon-button-medium" matTooltip="Otwórz zadanie"
+    (click)="onTaskClick(row); $event.stopPropagation()">
+    <mat-icon svgIcon="open_in_new"></mat-icon>
+  </button>
+</ng-template>

@@ -1,0 +1,148 @@
+.pretty-select-label {
+  color: color-mix(in srgb, var(--crm-sys-text) 50%, transparent) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-align: left;
+  padding-left: 20px;
+}
+
+/* ── host constraint (overflow fix) ── */
+:host {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+:host > button.ellipsis-btn {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* ── trigger button internals ── */
+.btn-placeholder { color: color-mix(in srgb, var(--crm-sys-text) 70%, transparent) !important; }
+.btn-toggle      { color: color-mix(in srgb, var(--crm-sys-text) 80%, transparent) !important; }
+.btn-label       { color: var(--crm-sys-text) !important; }
+
+:host ::ng-deep .ellipsis-btn .mdc-button__label,
+.ellipsis-btn.mdc-button .mdc-button__label {
+  text-align: left !important;
+  min-width: 0;
+  overflow: hidden;
+}
+
+:host ::ng-deep .ellipsis-btn .mdc-button__label .btn-label,
+:host ::ng-deep .ellipsis-btn .mdc-button__label .btn-placeholder {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+:host ::ng-deep .ellipsis-btn .mdc-button__label .btn-toggle {
+  flex: 0 0 auto;
+}
+
+/* ── menu panel ── */
+:host ::ng-deep .menu-match-trigger.mat-mdc-menu-panel {
+  max-width: none;
+  min-width: 0;
+}
+
+:host ::ng-deep .menu-match-trigger .mat-mdc-menu-content { padding: 0; }
+
+.pretty-menu {
+  padding: 4px 8px 8px;
+  max-height: min(48vh, 420px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
+:host ::ng-deep .menu-match-trigger .pretty-menu {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* ── search field ── */
+.pretty-search-field  { width: 100%; margin-bottom: 4px; }
+.pretty-create-wrapper{ padding: 4px 2px; }
+.pretty-create-btn    { width: 100%; justify-content: flex-start; text-align: left; }
+.pretty-empty         { opacity: .7; padding: 6px 4px; font-size: .9rem; }
+
+/* ── option row — mirrors .notebook-row / .doc-row from RequestAccessDialogComponent ── */
+.ps-row {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 4px 7px 10px;
+  border-radius: 10px;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease;
+  font: inherit;
+  color: inherit;
+  box-sizing: border-box;
+}
+
+.ps-row:hover {
+  background: color-mix(in srgb, var(--mat-sys-secondary-container) 50%, transparent);
+}
+
+.ps-row--active {
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 55%, transparent);
+}
+
+.ps-row__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--crm-sys-text);
+  line-height: 1.3;
+}
+
+.ps-row crm-pretty-radio-button {
+  flex: 0 0 auto;
+}
+
+/* ── selected-count badge ── */
+.selected-count {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--mat-sys-primary-container) 70%, transparent);
+  color: var(--crm-sys-text);
+  float: right;
+  margin-right: 16px;
+}
+
+/* ── disabled state ── */
+.mat-mdc-outlined-button[disabled],
+.mat-mdc-outlined-button.mat-mdc-button-disabled {
+  border-color: var(--mat-button-outlined-disabled-outline-color,
+    color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent)) !important;
+}
+
+.mat-mdc-button-disabled .btn-toggle,
+:host ::ng-deep .btn-toggle.disabled,
+:host ::ng-deep .btn-placeholder.disabled,
+:host ::ng-deep .btn-label.disabled {
+  color: var(--mat-button-outlined-disabled-outline-color,
+    color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent)) !important;
+}
