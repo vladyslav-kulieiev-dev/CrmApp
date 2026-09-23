@@ -1,0 +1,98 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.tasks-shell {
+  height: calc(100vh - 74px) !important;
+  background: var(--crm-sys-background);
+}
+
+.tasks-content {
+  height: 100%;
+  background: var(--crm-sys-background);
+  display: flex;
+  flex-direction: column;
+}
+
+.tasks-header {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid color-mix(in srgb, var(--crm-sys-text) 8%, transparent);
+  background: var(--crm-sys-background);
+  flex-shrink: 0;
+  gap: 4px;
+  justify-content: space-between;
+}
+
+.header-tabs {
+  display: flex;
+  gap: 2px;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 0;
+    border-bottom: 2px solid transparent;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    color: color-mix(in srgb, var(--crm-sys-text) 60%, transparent);
+    transition: color 160ms ease, border-color 160ms ease;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    &.tab-active {
+      border-bottom-color: var(--mat-sys-primary);
+      color: var(--mat-sys-primary);
+    }
+
+    &:hover:not(.tab-active) {
+      color: var(--crm-sys-text);
+      background: color-mix(in srgb, var(--mat-sys-secondary-container) 40%, transparent);
+    }
+  }
+}
+
+.tasks-body {
+  flex: 1;
+  overflow: auto;
+  padding: 24px;
+}
+
+.detail-sidenav {
+  width: 100vw !important;
+  height: 100% !important;
+  border-left: 1px solid color-mix(in srgb, var(--crm-sys-text) 10%, transparent);
+  background: color-mix(in srgb, var(--crm-sys-background) 96%, white);
+}
+/* ── Fix sidenav - nadpisz Material defaults ──────────────────────────── */
+::ng-deep .mat-sidenav-container {
+  background: var(--crm-sys-background) !important;
+  color: var(--crm-sys-text) !important;
+}
+
+::ng-deep .mat-sidenav {
+  background: var(--crm-sys-background) !important;
+  color: var(--crm-sys-text) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+::ng-deep .mat-sidenav-content {
+  background: var(--crm-sys-background) !important;
+  color: var(--crm-sys-text) !important;
+}
+
+/* Usuń czarny border który nakłada Material na sidenav w light/dark mode */
+::ng-deep .mat-drawer {
+  border: none !important;
+  border-left: 1px solid color-mix(in srgb, var(--crm-sys-text) 10%, transparent) !important;
+}

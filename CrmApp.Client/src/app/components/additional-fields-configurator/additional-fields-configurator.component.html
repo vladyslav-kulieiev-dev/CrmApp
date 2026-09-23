@@ -1,0 +1,225 @@
+<crm-header [headerSubpageTitle]="'Konfiguracja list'"></crm-header>
+<div class="configurator-layout">
+
+  <aside class="tables-panel">
+    <div class="panel-header-no-icon">
+      <span class="panel-title">Widoki</span>
+    </div>
+
+    <nav class="tables-list">
+      @for (table of tables; track table.name) {
+        <button
+          class="table-item"
+          [class.active]="selectedTable().name === table.name"
+          (click)="selectTable(table)">
+          <mat-icon svgIcon="{{ table.icon }}"></mat-icon>
+          <span>{{ table.label }}</span>
+        </button>
+      }
+    </nav>
+  </aside>
+
+  <section class="fields-panel">
+
+    <div class="sticky-action-bar">
+      <span class="bar-title">
+        Dodatkowe kolumny — {{ selectedTable().label }}
+      </span>
+      <button matButton="tonal" class="pill-sm" (click)="openAddDialog()">
+        <mat-icon svgIcon="add"></mat-icon>
+        Nowe pole
+      </button>
+    </div>
+
+    <!-- @if (loading()) {
+      <div class="loader-wrap">
+        <mat-spinner diameter="36" />
+      </div>
+    } @else  -->
+    @if (fields().length === 0 && !loading()) {
+      <div class="empty-state">
+        <mat-icon svgIcon="table_edit"></mat-icon>
+        <p>Brak dodatkowych pól dla tego widoku.</p>
+        <button mat-button="tonal" class="pill-sm" (click)="openAddDialog()">
+          Dodaj pierwsze pole
+        </button>
+      </div>
+    } @else {
+      <div
+        class="fields-list"
+        cdkDropList
+        (cdkDropListDropped)="onDrop($event)">
+
+        @for (field of fields(); track field.id) {
+          <div
+            class="field-row"
+            [class.selected]="selectedField()?.id === field.id"
+            cdkDrag
+            (click)="selectField(field)">
+
+            <!-- drag handle -->
+            <mat-icon
+              class="drag-handle"
+              cdkDragHandle
+              svgIcon="drag_indicator">
+            </mat-icon>
+
+            <!-- ikona typu -->
+            <mat-icon
+              class="type-icon"
+              [matTooltip]="fieldTypeLabel(field)"
+              svgIcon="{{ fieldTypeIcon(field) }}">
+            </mat-icon>
+
+            <!-- nazwa -->
+            <div class="field-info">
+              <span class="field-name">{{ field.fieldName }}</span>
+              <span class="field-meta">
+                {{ fieldTypeLabel(field) }}
+                @if (field.dictionaryName) {
+                  · {{ field.dictionaryName }}
+                }
+                @if (field.isMultiple) {
+                  · wielokrotny wybór
+                }
+              </span>
+            </div>
+
+            <!-- znaczniki -->
+            <div class="field-badges">
+              @if (field.isShowOnLists) {
+                <span class="badge badge--list"
+                      matTooltip="Widoczne na liście">
+                  lista
+                </span>
+              }
+              @if (field.isRequired) {
+                <span class="badge badge--required"
+                      matTooltip="Pole wymagane">
+                  wymagane
+                </span>
+              }
+              @if (field.permissions.length > 0) {
+                <span class="badge badge--locked"
+                      matTooltip="Ograniczone uprawnienia">
+                  <mat-icon svgIcon="shield"></mat-icon>
+                </span>
+              }
+            </div>
+
+            <!-- akcje -->
+            <div class="field-actions" (click)="$event.stopPropagation()">
+              <button mat-icon-button class="d-flex"
+                      matTooltip="Edytuj"
+                      (click)="openEditDialog(field)">
+                <mat-icon svgIcon="edit"></mat-icon>
+              </button>
+              <button mat-icon-button class="d-flex"
+                      matTooltip="Usuń"
+                      [disabled]="saving()"
+                      (click)="deleteField(field)">
+                <mat-icon class="icon-danger" svgIcon="delete"></mat-icon>
+              </button>
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+
+  </section>
+
+  <aside class="detail-panel">
+    @if (selectedField(); as field) {
+      <div class="panel-header">
+        <span class="panel-title">Szczegóły pola</span>
+        <button mat-icon-button (click)="openEditDialog(field)"
+                matTooltip="Edytuj">
+          <mat-icon svgIcon="edit"></mat-icon>
+        </button>
+      </div>
+
+      <div class="detail-content">
+
+        <div class="detail-row">
+          <span class="detail-label">Nazwa</span>
+          <span class="detail-value">{{ field.fieldName }}</span>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">Typ</span>
+          <span class="detail-value">
+            <mat-icon svgIcon="{{ fieldTypeIcon(field) }}">
+            </mat-icon>
+            {{ fieldTypeLabel(field) }}
+          </span>
+        </div>
+
+        @if (field.dictionaryName) {
+          <div class="detail-row">
+            <span class="detail-label">Słownik</span>
+            <span class="detail-value">{{ field.dictionaryName }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Wielokrotny wybór</span>
+            <span class="detail-value">
+              {{ field.isMultiple ? 'Tak' : 'Nie' }}
+            </span>
+          </div>
+        }
+
+        <div class="detail-row">
+          <span class="detail-label">Widoczne na liście</span>
+          <span class="detail-value">
+            {{ field.isShowOnLists ? 'Tak' : 'Nie' }}
+          </span>
+        </div>
+
+        <div class="detail-row">
+          <span class="detail-label">Wymagane</span>
+          <span class="detail-value">
+            {{ field.isRequired ? 'Tak' : 'Nie' }}
+          </span>
+        </div>
+
+        @if (field.defaultValue) {
+          <div class="detail-row">
+            <span class="detail-label">Wartość domyślna</span>
+            <span class="detail-value">{{ field.defaultValue }}</span>
+          </div>
+        }
+
+        <!-- Uprawnienia -->
+        <div class="section-label">Uprawnienia</div>
+
+        @if (field.permissions.length === 0) {
+          <p class="hint">Brak ograniczeń — pole widoczne dla wszystkich.</p>
+        } @else {
+          <div class="permissions-list">
+            @for (perm of field.permissions; track perm.id) {
+              <div class="perm-row">
+                <mat-icon svgIcon="{{ perm.roleId ? 'admin_panel' : 'person' }}">
+                </mat-icon>
+                <span>{{ perm.roleName ?? perm.userName }}</span>
+                <div class="perm-badges">
+                  @if (perm.canView) {
+                    <span class="badge">podgląd</span>
+                  }
+                  @if (perm.canEdit) {
+                    <span class="badge">edycja</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+      </div>
+    } @else {
+      <div class="empty-state">
+        <mat-icon svgIcon="info"></mat-icon>
+        <p>Wybierz pole z listy,<br>aby zobaczyć szczegóły.</p>
+      </div>
+    }
+  </aside>
+</div>

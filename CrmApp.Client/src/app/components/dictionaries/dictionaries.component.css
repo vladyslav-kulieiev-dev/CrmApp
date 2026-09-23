@@ -1,0 +1,82 @@
+:host {
+    display: block;
+    height: 100%;
+    min-height: 0;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    align-items: center;
+    /* important for nested scroll areas */
+}
+
+.mat-drawer {
+    width: 1200px !important;
+}
+
+@media (max-width: 600px) {
+    .mat-drawer {
+        width: 100% !important;
+    }
+    .col-10 {
+        /* flex: 0 0 100% !important; */
+        max-width: 100% !important;
+        width: 100% !important;
+    }
+}
+
+.content {
+    max-height: calc(100vh - 74px) !important;
+}
+
+.info-text {
+    color: var(--mat-sys-secondary) !important;
+    font-size: 16px !important;
+}
+
+.h-500 {
+    height: 500px !important;
+    max-height: 500px !important;
+    overflow: auto !important;
+}
+
+.input-cell {
+    padding: 2px 4px;
+}
+
+.drag-cell {
+    width: 40px;
+    padding: 0 4px;
+}
+
+.drag-handle {
+    cursor: grab;
+    color: var(--mat-sys-outline);
+    opacity: 0.5;
+
+    &:hover {
+        opacity: 1;
+    }
+}
+
+.cdk-drag-preview {
+    display: table;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: var(--mat-sys-surface);
+    opacity: 0.9;
+}
+
+.cdk-drag-placeholder {
+    opacity: 0.3;
+}
+
+.cdk-drag-animating {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging tr:not(.cdk-drag-placeholder) {
+    transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}

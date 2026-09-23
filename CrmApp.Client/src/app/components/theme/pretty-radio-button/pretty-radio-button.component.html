@@ -1,0 +1,5 @@
+<button type="button" class="select-nb-btn" [class.selected]="selected"
+    (click)="$event.stopPropagation(); selectItem()"
+    [matTooltip]="selected ? unselectHint : selectHint">
+    <mat-icon>{{ selected ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+</button>

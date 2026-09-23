@@ -1,0 +1,23 @@
+<ng-container *ngIf="data">
+  <!-- <div class="question-popup-header d-flex justify-content-end align-items-center">
+    <button matIconButton class="mat-icon-button-small" (click)="snackBarRef.dismiss()">
+      <mat-icon svgIcon="close"></mat-icon>
+    </button>
+  </div> -->
+  <div class="question-popup-wrapper">
+    <div *ngIf="data.icon" class="question-popup-icon" [ngClass]="data.type">
+      <mat-icon [ngClass]="data.type" [svgIcon]="data.icon"></mat-icon>
+    </div>
+    <div class="question-popup-content">
+      <span>{{ data.message }}</span>
+    </div>
+    <div class="question-popup-footer d-flex flex-row justify-content-between align-items-center">
+        <button matButton="tonal" color="error" class="pill-sm" (click)="close(true)">
+            <mat-icon svgIcon="success"></mat-icon>Tak
+        </button>
+        <button matButton="tonal" class="pill-sm" (click)="close(false)">
+            <mat-icon svgIcon="error"></mat-icon>Nie
+        </button>
+    </div>
+  </div>
+</ng-container>

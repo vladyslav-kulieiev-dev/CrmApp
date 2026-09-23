@@ -1,0 +1,67 @@
+<div class="w-100 h-100 d-flex flex-column justify-content-start align-items-center">
+    <div class="col-12 px-3 d-flex justify-content-between align-items-center mt-4 flex-wrap">
+        <div class="col-6 d-flex justify-content-start">
+            <h5 *ngIf="contractor.id">Kontrahent {{ originalDisplayName }}</h5>
+            <h5 *ngIf="!contractor.id">Nowy kontrahent</h5>
+        </div>
+        <div class="col-6 d-flex justify-content-end">
+            <button *ngIf="(canContractorsUpdate && contractor.id) || (canContractorsCreate && !contractor.id)"
+                matButton="tonal" color="success" class="save mx-2" (click)="saveChanges()">
+                <mat-icon svgIcon="save"></mat-icon> Zapisz zmiany
+            </button>
+            <button matButton="tonal" class="d-flex no-label" (click)="close()">
+                <mat-icon svgIcon="close"></mat-icon>
+            </button>
+        </div>
+    </div>
+    <div class="col-8 contractor-field-wrapper first">
+        <mat-form-field class="w-100" appearance="outline" floatLabel="always">
+            <mat-label>Nazwa*</mat-label>
+            <input matInput placeholder="..." [(ngModel)]="contractor.name" (focusout)="onContractorNameChange()">
+        </mat-form-field>
+    </div>
+    <div class="col-8 contractor-field-wrapper">
+        <mat-form-field class="w-100" appearance="outline" floatLabel="always">
+            <mat-label>Kod*</mat-label>
+            <input matInput placeholder="..." [(ngModel)]="contractor.code">
+        </mat-form-field>
+    </div>
+    <div class="col-8 contractor-field-wrapper">
+        <mat-form-field class="w-100" appearance="outline" floatLabel="always">
+            <mat-label>Nazwa wyświetlana</mat-label>
+            <input matInput placeholder="..." [(ngModel)]="contractor.displayName">
+        </mat-form-field>
+    </div>
+    <div class="col-8 contractor-field-wrapper">
+        <mat-form-field class="w-100" appearance="outline" floatLabel="always">
+            <mat-label>Nip*</mat-label>
+            <input matInput placeholder="..." [(ngModel)]="contractor.nip">
+        </mat-form-field>
+    </div>
+    <div class="col-8 contractor-field-wrapper">
+        <mat-form-field class="w-100" appearance="outline" floatLabel="always">
+            <mat-label>EU VAT</mat-label>
+            <input matInput placeholder="..." [(ngModel)]="contractor.euVAT">
+        </mat-form-field>
+    </div>
+    <div class="col-8 contractor-field-wrapper">
+        <mat-form-field class="w-100" appearance="outline" floatLabel="always">
+            <mat-label>Alternatywne numery Nip</mat-label>
+            <input matInput placeholder="..." [(ngModel)]="altNip" (keyup.enter)="addAlternativeNip()">
+            <button mat-icon-button class="mat-icon-button-small mr-1" matSuffix (click)="addAlternativeNip()">
+                <mat-icon svgIcon="add"></mat-icon>
+            </button>
+        </mat-form-field>
+    </div>
+    <div class="col-8 contractor-field-wrapper"
+        *ngIf="contractor && contractor.alternativeNipNumbers && contractor.alternativeNipNumbers.length">
+        <mat-chip-set class="nip-array-wrapper">
+            <mat-chip *ngFor="let nip of contractor.alternativeNipNumbers; index as i" (removed)="removeNip(i)">
+                {{ nip }}
+                <button matChipRemove aria-label="Usuń Nip">
+                    <mat-icon>cancel</mat-icon>
+                </button>
+            </mat-chip>
+        </mat-chip-set>
+    </div>
+</div>

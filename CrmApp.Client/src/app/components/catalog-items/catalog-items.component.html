@@ -1,0 +1,72 @@
+<crm-header [headerSubpageTitle]="'Produkty i usługi'"></crm-header>
+
+<div class="page">
+  <div class="content">
+    @if (tableConfig()) {
+      <crm-table
+        [config]="tableConfig()!"
+        [pagedData]="pagedData()"
+        [loading]="loading()"
+        storageKey="catalog-items"
+        (stateChange)="onStateChange($event)">
+        <!-- (rowClick)="editItem($event)" -->
+        <div crmTableToolbar>
+          <button matButton="tonal" class="pill-sm" (click)="addItem()">
+            <mat-icon svgIcon="add"></mat-icon>
+            @if (!(isMobile$ | async)) { Nowy }
+          </button>
+        </div>
+      </crm-table>
+    }
+
+  </div>
+</div>
+
+<ng-template #nameCellTpl let-row>
+  <div class="cell-primary">{{ row.name }}</div>
+  @if (row.description) {
+    <div class="cell-secondary">{{ row.description }}</div>
+  }
+</ng-template>
+
+<ng-template #codeCellTpl let-row>
+  <span class="code-chip">{{ row.code }}</span>
+</ng-template>
+
+<ng-template #activeCellTpl let-row>
+  @if (row.isActive) {
+    <mat-icon svgIcon="success" class="icon-success"></mat-icon>
+  } @else {
+    <mat-icon svgIcon="error" class="icon-danger"></mat-icon>
+  }
+</ng-template>
+
+<ng-template #actionsCellTpl let-row>
+  <div class="row-actions">
+    @if (row.isActive) {
+      <button mat-icon-button class="mat-icon-button-medium"
+              matTooltip="Dezaktywuj"
+              (click)="deactivateItem(row, $event)">
+        <mat-icon svgIcon="account_off" class="icon-danger"></mat-icon>
+      </button>
+    } @else {
+      <button mat-icon-button class="mat-icon-button-medium"
+              matTooltip="Aktywuj"
+              (click)="activateItem(row, $event)">
+        <mat-icon svgIcon="account_active" class="icon-success"></mat-icon>
+      </button>
+    }
+    <button mat-icon-button class="mat-icon-button-medium"
+            matTooltip="Edytuj"
+            (click)="editItem(row); $event.stopPropagation()">
+      <mat-icon svgIcon="edit"></mat-icon>
+    </button>
+    @if (row.canDelete) {
+      <button mat-icon-button class="mat-icon-button-medium"
+              matTooltip="Usuń"
+              (click)="deleteItem(row, $event)">
+        <mat-icon svgIcon="delete" class="icon-danger"></mat-icon>
+      </button>
+    }
+  </div>
+</ng-template>

@@ -1,0 +1,59 @@
+<div class="auth-shell">
+  <div class="brand">
+    <button class="no-shadow mx-2" matFab>
+        <mat-icon svgIcon="network_intel_node"></mat-icon>
+    </button>
+    <h1 class="brand-title">CrmApp</h1>
+    <!-- <p class="brand-tagline">Your AI-powered knowledge companion</p> -->
+  </div>
+
+  <mat-card class="login-card" appearance="outlined">
+    <h2 class="card-title">Zaloguj się</h2>
+    <p class="card-subtitle">aby zobaczyć swoje dokumenty</p>
+
+    <form class="login-form" [formGroup]="form" (ngSubmit)="submit()" autocomplete="on">
+      <mat-form-field class="ellipsis-input" appearance="outline">
+        <mat-label>Email</mat-label>
+        <input
+          matInput
+          type="email"
+          formControlName="email"
+          placeholder="Wprowadź email"
+          required
+          autocomplete="email"
+        />
+        <mat-error *ngIf="email?.hasError('required')">Email jest wymagany</mat-error>
+        <mat-error *ngIf="email?.hasError('email')">Podaj poprawny adres email</mat-error>
+      </mat-form-field>
+
+      <mat-form-field class="ellipsis-input" appearance="outline">
+        <mat-label>Hasło</mat-label>
+        <input
+          matInput
+          [type]="hide ? 'password' : 'text'"
+          formControlName="password"
+          placeholder="Wprowadź hasło"
+          required
+          autocomplete="current-password"
+        />
+        <button
+          mat-icon-button
+          type="button" class="mat-icon-button-small mr-1"
+          matSuffix
+          (click)="hide = !hide"
+          [attr.aria-label]="hide ? 'Pokaż hasło' : 'Ukryj hasło'"
+        >
+          <mat-icon>{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
+        <mat-error *ngIf="password?.hasError('required')">Hasło jest wymagane</mat-error>
+        <mat-error *ngIf="password?.hasError('minlength')">Hasło musi się składać z min. 8 znaków</mat-error>
+      </mat-form-field>
+      <mat-checkbox formControlName="rememberMe">Zapamiętaj mnie</mat-checkbox>
+      <button class="sign-in-btn" mat-flat-button color="primary" type="submit">
+        Zaloguj
+      </button>
+    </form>
+    <a class="mt-3" routerLink="/forgot-password">Nie pamiętasz hasła?</a>
+  </mat-card>
+</div>
+

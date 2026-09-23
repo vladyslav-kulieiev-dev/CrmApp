@@ -1,0 +1,113 @@
+:host {
+  display: block;
+}
+
+.mail-compose {
+  border: 1px solid color-mix(in srgb, var(--crm-sys-text) 8%, transparent);
+  border-radius: 14px;
+  padding: 14px 16px;
+  background: color-mix(in srgb, var(--crm-sys-background) 98%, white);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.compose-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+
+  .compose-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    color: var(--mat-sys-primary);
+    flex-shrink: 0;
+    line-height: 0;
+  }
+
+  .compose-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--crm-sys-text);
+  }
+}
+
+.mail-to-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--crm-sys-text) 8%, transparent);
+  font-size: 12px;
+
+  .to-label {
+    color: color-mix(in srgb, var(--crm-sys-text) 50%, transparent);
+    flex-shrink: 0;
+  }
+
+  .to-value {
+    font-weight: 600;
+    color: var(--crm-sys-text);
+  }
+}
+
+.full-width { width: 100%; }
+
+.error-msg {
+  font-size: 12px;
+  color: var(--mat-sys-error);
+  background: color-mix(in srgb, var(--mat-sys-error) 8%, transparent);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid var(--mat-sys-error);
+}
+
+.compose-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid color-mix(in srgb, var(--crm-sys-text) 15%, transparent);
+  background: transparent;
+  color: var(--crm-sys-text);
+  cursor: pointer;
+  min-height: 34px;
+  transition: background 140ms ease;
+
+  &:hover {
+    background: color-mix(in srgb, var(--mat-sys-secondary-container) 50%, transparent);
+  }
+
+  &.pill-btn-accent {
+    background: color-mix(in srgb, var(--crm-sys-tertiary-container) 70%, transparent);
+    color: var(--mat-sys-primary);
+    border-color: color-mix(in srgb, var(--mat-sys-primary) 25%, transparent);
+
+    &:hover {
+      background: color-mix(in srgb, var(--crm-sys-tertiary-container) 90%, transparent);
+    }
+  }
+
+  &[disabled] {
+    opacity: .4;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  mat-icon {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+}

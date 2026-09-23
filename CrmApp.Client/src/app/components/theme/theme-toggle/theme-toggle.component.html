@@ -1,0 +1,9 @@
+<mat-button-toggle-group class="tgl-pill-sm" [appearance]="appearance" [(value)]="theme" (change)="onChange($event.value)">
+    <mat-button-toggle class="tgl-pill-sm" value="system" #tooltip="matTooltip" matTooltip="Motyw systemowy" matTooltipPosition="below">
+        <mat-icon svgIcon="system_mode"></mat-icon>
+    </mat-button-toggle>
+    <mat-button-toggle class="tgl-pill-sm" value="light" #tooltip="matTooltip" matTooltip="Motyw jasny" matTooltipPosition="below"><mat-icon
+            svgIcon="light_mode"></mat-icon></mat-button-toggle>
+    <mat-button-toggle class="tgl-pill-sm" value="dark" #tooltip="matTooltip" matTooltip="Motyw ciemny" matTooltipPosition="below"><mat-icon
+            svgIcon="dark_mode"></mat-icon></mat-button-toggle>
+</mat-button-toggle-group>

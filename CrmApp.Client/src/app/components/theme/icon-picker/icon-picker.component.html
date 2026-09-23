@@ -1,0 +1,19 @@
+<ng-container *ngIf="!isReadonly">
+    <button *ngIf="buttonSize == 'small'" matMiniFab class="no-shadow transparent" [ngClass]="btnClass" [matMenuTriggerFor]="emojiMenu" #emojiMenuTrigger="matMenuTrigger">
+        <ngx-emoji class="crm-emoji picker" [emoji]="value" set="google" [size]="size"
+            [fallback]="emojiFallback"></ngx-emoji>
+    </button>
+    <button *ngIf="buttonSize == 'big'" matFab class="no-shadow transparent" [ngClass]="btnClass" [matMenuTriggerFor]="emojiMenu" #emojiMenuTrigger="matMenuTrigger">
+        <ngx-emoji class="crm-emoji picker" [emoji]="value" set="google" [size]="size"
+            [fallback]="emojiFallback"></ngx-emoji>
+    </button>
+    <mat-menu class="emoji-menu" #emojiMenu="matMenu" [hasBackdrop]="false">
+        <div class="pretty-menu" (click)="$event.stopPropagation()">
+            <emoji-mart title="Wybierz" [emoji]="valueStr" (emojiSelect)="selectEmoji($event)" set="google"
+                [darkMode]="isDark" locale="pl" [showPreview]="false" [i18n]="translations"></emoji-mart>
+        </div>
+    </mat-menu>
+</ng-container>
+<ng-container *ngIf="isReadonly">
+    <ngx-emoji class="crm-emoji" [emoji]="value" set="google" [size]="size" [fallback]="emojiFallback"></ngx-emoji>
+</ng-container>

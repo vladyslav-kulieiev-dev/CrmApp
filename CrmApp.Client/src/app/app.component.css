@@ -1,0 +1,19 @@
+﻿:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%; 
+}
+
+router-outlet + * {
+  flex: 1;
+  min-height: 0;
+}
+
+th, td {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+table {
+  margin: 0 auto;
+}

@@ -1,0 +1,189 @@
+<div class="dialog-header">
+  <span class="dialog-title">
+    {{ isEdit ? 'Edytuj pole' : 'Nowe pole' }}
+  </span>
+  <button mat-icon-button (click)="cancel()">
+    <mat-icon svgIcon="close"></mat-icon>
+  </button>
+</div>
+
+@if (loading()) {
+<div class="loader-wrap">
+  <mat-spinner diameter="36" />
+</div>
+} @else {
+<form [formGroup]="form" (ngSubmit)="save()" class="dialog-form">
+
+  <mat-dialog-content>
+
+    <!-- ── Podstawowe ─────────────────────────────────── -->
+    <section class="form-section">
+      <div class="section-label col-span-2">Podstawowe</div>
+
+      <mat-form-field appearance="outline" class="ellipsis-input" floatLabel="always">
+        <mat-label>Nazwa pola</mat-label>
+        <input matInput formControlName="fieldName" placeholder="np. Kod klienta" />
+        @if (form.get('fieldName')?.hasError('required')) {
+        <mat-error>Nazwa jest wymagana</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="ellipsis-input" floatLabel="always">
+        <mat-label>Typ pola</mat-label>
+        <mat-select formControlName="fieldType">
+          @for (opt of valueTypeOptions; track opt.value) {
+          <mat-option [value]="opt.value">
+            <div class="type-option">
+              <mat-icon svgIcon="{{ opt.icon }}"></mat-icon>
+              {{ opt.name }}
+            </div>
+          </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Słownik — tylko dla List -->
+      @if (isList) {
+      <mat-form-field appearance="outline" class="full-width ellipsis-input" floatLabel="always">
+        <mat-label>Słownik wartości</mat-label>
+        <mat-select formControlName="dictionaryId">
+          @for (dict of dictionaries; track dict.id) {
+          <mat-option [value]="dict.id">{{ dict.name }}</mat-option>
+          }
+        </mat-select>
+        <mat-hint>Wybierz słownik typu „Własne"</mat-hint>
+      </mat-form-field>
+      }
+
+      <!-- Wartość domyślna — nie dla Boolean i List -->
+      @if (form.get('fieldType')?.value !== EValueType.Boolean
+      && form.get('fieldType')?.value !== EValueType.List) {
+      <mat-form-field appearance="outline" class="full-width ellipsis-input" floatLabel="always">
+        <mat-label>Wartość domyślna</mat-label>
+        <input matInput formControlName="defaultValue" />
+      </mat-form-field>
+      }
+      @if (form.get('fieldType')?.value === EValueType.List && selectedDictionary) {
+      <mat-form-field appearance="outline" class="full-width ellipsis-input" floatLabel="always">
+        <mat-label>Wartość domyślna</mat-label>
+        <mat-select formControlName="defaultValue">
+          @for (dictElem of selectedDictionary.dictionariesElements; track dictElem.id) {
+          <mat-option [value]="dictElem.value">{{ dictElem.key }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      }
+
+      <div class="checkboxes-row col-span-2">
+        <mat-checkbox formControlName="isShowOnLists">
+          Widoczne na liście
+        </mat-checkbox>
+        <mat-checkbox formControlName="isRequired">
+          Pole wymagane
+        </mat-checkbox>
+        <mat-checkbox formControlName="isMultiple" *ngIf="form.get('fieldType')?.value === EValueType.List">
+          Wielokrotny wybór
+        </mat-checkbox>
+      </div>
+    </section>
+
+    <!-- ── Uprawnienia ────────────────────────────────── -->
+    <section class="form-section">
+      <div class="section-label col-span-2">Uprawnienia</div>
+      <p class="hint col-span-2">Brak wpisów = pole widoczne dla wszystkich.</p>
+
+      <!-- Dwa multiselect dropdowny -->
+      <div class="perm-selects d-flex justify-content-between align-items-center col-span-2">
+
+        <mat-form-field appearance="outline" class="perm-select-field ellipsis-input">
+          <mat-label>Dodaj rolę</mat-label>
+          <mat-select [formControl]="roleSelectControl" multiple>
+            @for (role of roles; track role.id) {
+            <mat-option [value]="role.id">
+              <div class="option-row">
+                {{ role.name }}
+              </div>
+            </mat-option>
+            }
+          </mat-select>
+          <mat-icon matPrefix svgIcon="admin_panel"></mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="perm-select-field ellipsis-input">
+          <mat-label>Dodaj użytkownika</mat-label>
+          <mat-select [formControl]="userSelectControl" multiple>
+            @for (user of users; track user.id) {
+            <mat-option [value]="user.id">
+              <div class="option-row">
+                {{ user.displayName }}
+              </div>
+            </mat-option>
+            }
+          </mat-select>
+          <mat-icon matPrefix svgIcon="person"></mat-icon>
+        </mat-form-field>
+
+      </div>
+
+      <!-- Lista dodanych uprawnień -->
+      @if (permissionsArray.length > 0) {
+      <div class="permissions-header-row form-grid-4 col-span-2">
+        <span class="perm-col-name">Rola / Użytkownik</span>
+        <span class="perm-col-check">Podgląd</span>
+        <span class="perm-col-check">Edycja</span>
+        <span class="perm-col-action"></span>
+      </div>
+
+      <div formArrayName="permissions" class="permissions-list col-span-2">
+        @for (ctrl of permissionsArray.controls; track $index) {
+        <div [formGroupName]="$index" class="perm-entry form-grid-4">
+
+          <!-- Ikona + nazwa roli lub usera -->
+          <div class="perm-identity">
+            @if (ctrl.get('roleId')?.value) {
+            <mat-icon svgIcon="admin_panel"></mat-icon>
+            <span>{{ getRoleName(ctrl.get('roleId')?.value) }}</span>
+            } @else {
+            <div class="user-initials">{{ getUserInitials(ctrl.get('userId')?.value) }}</div>
+            <span>{{ getUserName(ctrl.get('userId')?.value) }}</span>
+            }
+          </div>
+
+          <!-- Checkboxy -->
+          <div class="perm-col-check">
+            <mat-checkbox formControlName="canView" />
+          </div>
+          <div class="perm-col-check">
+            <mat-checkbox formControlName="canEdit" />
+          </div>
+
+          <!-- Usuń -->
+          <div class="perm-col-action">
+            <button type="button" mat-icon-button matTooltip="Usuń" (click)="removePermission($index)">
+              <mat-icon class="icon-danger" svgIcon="delete"></mat-icon>
+            </button>
+          </div>
+
+        </div>
+        }
+      </div>
+      }
+
+    </section>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button type="button" mat-button (click)="cancel()">
+      Anuluj
+    </button>
+    <button type="submit" mat-button="tonal" class="pill" [disabled]="saving()">
+      @if (saving()) {
+      <mat-spinner diameter="16" />
+      }
+      {{ isEdit ? 'Zapisz zmiany' : 'Utwórz pole' }}
+    </button>
+  </mat-dialog-actions>
+
+</form>
+}

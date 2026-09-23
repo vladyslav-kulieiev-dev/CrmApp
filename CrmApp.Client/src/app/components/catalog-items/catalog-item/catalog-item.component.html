@@ -1,0 +1,152 @@
+<crm-header [headerSubpageTitle]="headerLabel" [showReturnButton]="true"></crm-header>
+<div class="page h-100">
+  <div class="content w-100">
+    <form class="catalog-item-form col-6" [formGroup]="form" (ngSubmit)="submit()" autocomplete="on">
+      <div class="w-100 d-flex justify-content-between align-items-start my-2">
+        <button matButton="tonal" color="success" type="submit">
+          <mat-icon svgIcon="success"></mat-icon>
+          Zapisz
+        </button>
+        <mat-slide-toggle formControlName="isActive">Aktywny</mat-slide-toggle>
+      </div>
+      <div class="w-100 d-flex justify-content-between align-items-start my-2">
+        <mat-form-field class="w-49 ellipsis-input" appearance="outline"
+        [class.input-with-error-under]="name?.touched && name?.invalid">
+          <mat-label>Nazwa</mat-label>
+          <input matInput formControlName="name" placeholder="..." required />
+          <mat-error *ngIf="name?.hasError('required')">Nazwa jest wymagana</mat-error>
+        </mat-form-field>
+  
+        <mat-form-field class="w-49 ellipsis-input" appearance="outline"
+        [class.input-with-error-under]="code?.touched && code?.invalid">
+          <mat-label>Kod</mat-label>
+          <input matInput formControlName="code" placeholder="..." required />
+          <mat-error *ngIf="code?.hasError('required')">Kod jest wymagany</mat-error>
+        </mat-form-field>
+      </div>
+
+      <div class="w-100 d-flex justify-content-between align-items-start my-2">
+        <mat-form-field class="w-49 ellipsis-input" appearance="outline"
+        [class.input-with-error-under]="type?.touched && type?.invalid">
+          <mat-label>Typ</mat-label>
+          <mat-select formControlName="type" placeholder="Wybierz">
+              <mat-option *ngFor="let item of productTypes" [value]="item.id">
+                {{ item.key }}
+              </mat-option>
+          </mat-select>
+          <mat-error *ngIf="type?.hasError('required')">Wybierz typ produktu</mat-error>      
+        </mat-form-field>
+
+        <mat-form-field class="w-49 ellipsis-input" appearance="outline"
+        [class.input-with-error-under]="categoryId?.touched && categoryId?.invalid">
+          <mat-label>Kategoria</mat-label>
+          <mat-select formControlName="categoryId" placeholder="Wybierz">
+              <mat-option *ngFor="let item of productCategories" [value]="item.id">
+                {{ item.key }}
+              </mat-option>
+          </mat-select>
+          <mat-error *ngIf="categoryId?.hasError('required')">Wybierz kategorię produktu</mat-error>       
+        </mat-form-field>
+      </div>
+      <div class="w-100 d-flex justify-content-between align-items-start my-2">
+        <mat-form-field class="w-49 ellipsis-input" appearance="outline"
+        [class.input-with-error-under]="unitId?.touched && unitId?.invalid">
+          <mat-label>Jednostka</mat-label>
+          <mat-select formControlName="unitId" placeholder="Wybierz">
+            <mat-option *ngFor="let item of units" [value]="item.id">
+              {{ item.key }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="unitId?.hasError('required')">Jednostka jest wymagana</mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="w-49 ellipsis-input" appearance="outline"
+          [class.input-with-error-under]="billingUnitId?.touched && billingUnitId?.invalid">
+          <mat-label>Jednostka rozliczeniowa</mat-label>
+          <mat-select formControlName="billingUnitId" placeholder="Wybierz">
+            <mat-option *ngFor="let item of billingUnits" [value]="item.id">
+              {{ item.key }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="billingUnitId?.hasError('required')">Jednostka rozliczeniowa jest wymagana</mat-error>
+        </mat-form-field>
+      </div>    
+      <div class="w-100 d-flex justify-content-between align-items-start my-2">
+        <mat-form-field class="col-4 ellipsis-input" appearance="outline" [class.input-with-error-under]="price?.touched && price?.invalid">
+          <mat-label>Cena</mat-label>
+          <input matInput type="number" formControlName="price" placeholder="0.00" required />
+          <mat-error *ngIf="price?.hasError('required')">Cena jest wymagana</mat-error>
+          <mat-error *ngIf="price?.hasError('min')">Cena nie może być ujemna</mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="col-4 px-3 ellipsis-input" appearance="outline" [class.input-with-error-under]="currency?.touched && currency?.invalid">
+          <mat-label>Waluta</mat-label>
+          <mat-select formControlName="currency" placeholder="Wybierz">
+            <mat-option *ngFor="let item of currencies" [value]="item.value">
+                {{ item.value }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="currency?.hasError('required')">Waluta jest wymagana</mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="col-4 ellipsis-input" appearance="outline" [class.input-with-error-under]="vatRate?.touched && vatRate?.invalid">
+          <mat-label>Stawka VAT</mat-label>
+          <mat-select formControlName="vatRate" placeholder="Wybierz">
+            <mat-option *ngFor="let item of vatRates" [value]="item.value">
+              {{ item.name }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="vatRate?.hasError('required')">VAT jest wymagany</mat-error>
+        </mat-form-field>
+      </div>
+      <mat-form-field appearance="outline" [hidden]="!enableParentSelection" class="ellipsis-input">
+        <mat-label>Produkt nadrzędny</mat-label>
+        <mat-select formControlName="parentItemId" placeholder="Wybierz" (valueChange)="filterCatalogItems()">
+          <mat-option *ngFor="let item of filteredCatalogItems" [value]="item.id">
+              {{ item.code }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+      <div class="w-100 d-flex justify-content-between align-items-start my-2">
+        <mat-form-field class="w-49 ellipsis-input" appearance="outline"
+        [class.input-with-error-under]="technicalSupervisorId?.touched && technicalSupervisorId?.invalid">
+          <mat-label>Opiekun programistyczny</mat-label>
+          <mat-select formControlName="technicalSupervisorId" placeholder="Wybierz">
+            <mat-option *ngFor="let user of allUsers" [value]="user.id">
+              {{ user.displayName }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="technicalSupervisorId?.hasError('required')">Opiekun programistyczny jest wymagany</mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="w-49 ellipsis-input" appearance="outline"
+          [class.input-with-error-under]="implementationManagerId?.touched && implementationManagerId?.invalid">
+          <mat-label>Opiekun wdrożeniowy</mat-label>
+          <mat-select formControlName="implementationManagerId" placeholder="Wybierz">
+            <mat-option *ngFor="let user of allUsers" [value]="user.id">
+              {{ user.displayName }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="implementationManagerId?.hasError('required')">Opiekun wdrożeniowy jest wymagany</mat-error>
+        </mat-form-field>
+      </div>   
+
+      <div class="w-100 d-flex justify-content-between align-items-start my-2">
+        <mat-form-field class="w-100 ellipsis-input" appearance="outline">
+          <mat-label>Produkty współdziałające</mat-label>
+          <mat-select formControlName="supportedSystems" placeholder="Wybierz" multiple>
+            <mat-option *ngFor="let item of catalogItems" [value]="item.id">
+              {{ item.name }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      <mat-form-field appearance="outline" class="ellipsis-input">
+        <mat-label>Opis</mat-label>
+        <textarea matInput formControlName="description" rows="3" placeholder="..."></textarea>
+      </mat-form-field>
+    </form>
+  </div>
+</div>

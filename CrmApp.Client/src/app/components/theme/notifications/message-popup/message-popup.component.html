@@ -1,0 +1,15 @@
+<ng-container *ngIf="data">
+  <div class="message-popup-header d-flex justify-content-end align-items-center">
+    <button matIconButton class="mat-icon-button-small" (click)="snackBarRef.dismiss()">
+      <mat-icon svgIcon="close"></mat-icon>
+    </button>
+  </div>
+  <div class="message-popup-wrapper">
+    <div *ngIf="data.icon" class="message-popup-icon" [ngClass]="data.type">
+      <mat-icon [ngClass]="data.type" [svgIcon]="data.icon"></mat-icon>
+    </div>
+    <div class="message-popup-content">
+      <span>{{ data.message }}</span>
+    </div>
+  </div>
+</ng-container>

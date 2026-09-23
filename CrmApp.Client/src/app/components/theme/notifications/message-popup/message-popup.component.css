@@ -1,0 +1,32 @@
+.message-popup-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    /* color: var(--crm-sys-text);
+    background-color: var(--crm-sys-background); */
+    margin-top: -12px !important;
+    margin-bottom: 20px !important;
+}
+
+.message-popup-icon .mat-icon {
+    font-size: 46px !important;
+    width: 46px !important;
+    height: 46px !important;
+}
+
+.message-popup-header .mat-icon {
+    color: rgb(82, 82, 82) !important;
+    fill: rgb(82, 82, 82) !important;
+}
+
+.message-popup-content {
+    font-weight: 500;
+    font-size: 16px !important;
+    max-width: 400px !important;
+    text-align: center !important;
+}
+
+.message-popup-button {
+    margin-top: 8px !important;
+}

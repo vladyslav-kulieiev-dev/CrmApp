@@ -1,0 +1,326 @@
+
+  <div class="table-toolbar">
+    <div class="toolbar-left">
+      @if (showSearch) {
+        <div class="search-bar">
+          <mat-form-field appearance="outline" class="search-field ellipsis-input">
+            <mat-icon matPrefix svgIcon="search"></mat-icon>
+            <input matInput [formControl]="searchControl" [placeholder]="searchPlaceholder">
+            @if (searchControl.value) {
+              <button mat-icon-button matSuffix aria-label="Wyczyść" class="mat-icon-button-small mr-1"
+                      (click)="searchControl.setValue('')">
+                <mat-icon svgIcon="close"></mat-icon>
+              </button>
+            }
+          </mat-form-field>
+        </div>
+      }
+      @if (hasAnyFilter()) {
+        <div class="active-filters-bar">
+          @for (chip of activeFilterChips(); track chip.key) {
+            <span class="filter-chip">
+              <span class="chip-col">{{ chip.colHeader }}:</span>
+              {{ chip.label }}
+              <button mat-icon-button class="chip-remove mat-icon-button-small"
+                      (click)="clearFilter(chip.key)">
+                <mat-icon svgIcon="close"></mat-icon>
+              </button>
+            </span>
+          }
+          <button mat-button class="clear-all-btn"
+                  (click)="clearAllFilters()">
+            Wyczyść filtry
+          </button>
+        </div>
+      }
+    </div>
+    <div class="toolbar-right">
+      <ng-content select="[crmTableToolbar]"></ng-content>
+      @if (config.exportable) {
+        <button matButton="tonal" class="pill" [matMenuTriggerFor]="exportMenu" matTooltip="Eksportuj dane">
+          <mat-icon svgIcon="download"></mat-icon>
+          Eksport
+        </button>
+        <mat-menu #exportMenu="matMenu">
+          <button mat-menu-item (click)="exportExcel()">
+            <mat-icon svgIcon="table_view"></mat-icon> Excel (.xlsx)
+          </button>
+          <button mat-menu-item (click)="exportCsv()">
+            <mat-icon svgIcon="description"></mat-icon> CSV (.csv)
+          </button>
+        </mat-menu>
+      }
+      @if (configurableColumns().length > 1) {
+      <div class="col-chooser-wrap">
+        <button matButton="tonal" class="pill col-chooser-btn"
+                (click)="columnChooserOpen.set(!columnChooserOpen())"
+                [class.chooser-active]="columnChooserOpen()"
+                matTooltip="Widoczność kolumn">
+          <mat-icon svgIcon="view_column"></mat-icon>
+          Kolumny
+        </button>
+
+        @if (columnChooserOpen()) {
+          <div class="col-chooser-panel">
+            <div class="chooser-header">
+              <span>Kolumny</span>
+              <button mat-button class="reset-btn"
+                      (click)="resetColumnVisibility()">
+                Resetuj
+              </button>
+            </div>
+            <mat-divider />
+            @for (col of configurableColumns(); track col.key) {
+              <label class="chooser-row">
+                <mat-checkbox
+                  [checked]="isColumnVisible(col.key)"
+                  (change)="toggleColumn(col.key)">
+                  {{ col.header || '—' }}
+                </mat-checkbox>
+              </label>
+            }
+          </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
+<!-- Tabela -->
+<div class="table-wrap">
+  <table mat-table
+         [dataSource]="dataSource"
+         [trackBy]="trackByFn"
+         matSort
+         [matSortActive]="config.defaultSortBy ?? ''"
+         [matSortDirection]="config.defaultSortDesc ? 'desc' : 'asc'"
+         matSortDisableClear
+         class="crm-table">
+
+    <!-- Generujemy kolumny dynamicznie -->
+    @for (col of config.columns; track col.key) {
+
+      <ng-container [matColumnDef]="col.key"
+                    [sticky]="col.sticky === 'start'"
+                    [stickyEnd]="col.sticky === 'end'">
+
+        <!-- ── HEADER ─────────────────────────────────────────────── -->
+        <th mat-header-cell *matHeaderCellDef
+            [style.width]="col.width"
+            [class.filterable]="col.filter && col.filter.type !== 'none'">
+
+          @if (col.headerTemplate) {
+            <ng-container
+              [ngTemplateOutlet]="col.headerTemplate">
+            </ng-container>
+          } @else {
+            <div class="header-cell">
+
+              <!-- Tekst + sort -->
+              @if (col.sortable !== false && !isFrontend) {
+                <span [mat-sort-header]="col.key"
+                      class="header-label">
+                  {{ col.header }}
+                </span>
+              } @else if (col.sortable !== false && isFrontend) {
+                <span [mat-sort-header]="col.key"
+                      class="header-label">
+                  {{ col.header }}
+                </span>
+              } @else {
+                <span class="header-label">{{ col.header }}</span>
+              }
+
+              <!-- Filtr -->
+              @if (col.filter && col.filter.type !== 'none') {
+
+                <!-- SELECT / LIST -->
+                @if (col.filter.type === 'select') {
+                  <button mat-icon-button class="filter-icon-btn mat-icon-button-small"
+                          [class.filter-active]="isFiltered(col.key)"
+                          [matMenuTriggerFor]="selectMenu"
+                          (click)="$event.stopPropagation()"
+                          [matTooltip]="isFiltered(col.key)
+                            ? col.header + ': ' + getSelectedLabel(col.key)
+                            : 'Filtruj: ' + col.header">
+                    <mat-icon svgIcon="{{ isFiltered(col.key)
+                      ? 'filter_alt' : 'filter_alt_off' }}">
+                    </mat-icon>
+                  </button>
+
+                  <mat-menu #selectMenu="matMenu" class="crm-filter-menu">
+                    <div class="filter-menu-title"
+                         (click)="$event.stopPropagation()">
+                      {{ col.header }}
+                    </div>
+                    <button mat-menu-item
+                            [class.menu-item-selected]="!isFiltered(col.key)"
+                            (click)="clearFilter(col.key)">
+                      <mat-icon svgIcon="{{ !isFiltered(col.key)
+                        ? 'radio_button_checked'
+                        : 'radio_button_unchecked' }}">
+                      </mat-icon>
+                      Wszystkie
+                    </button>
+                    <mat-divider />
+                    @for (opt of col.filter.options ?? []; track opt.value) {
+                      <button mat-menu-item
+                              [class.menu-item-selected]="filterValues()[col.key] === opt.value"
+                              (click)="getFormControl(col.key).setValue(opt.value)">
+                        <mat-icon svgIcon="{{ filterValues()[col.key] === opt.value
+                          ? 'radio_button_checked'
+                          : 'radio_button_unchecked' }}">
+                        </mat-icon>
+                        @if (opt.icon) {
+                          <mat-icon svgIcon="{{ opt.icon }}"></mat-icon>
+                        }
+                        {{ opt.label }}
+                      </button>
+                    }
+                  </mat-menu>
+                }
+
+                <!-- TEXT / NUMBER -->
+                @if (col.filter.type === 'text' || col.filter.type === 'number') {
+                  <button mat-icon-button class="filter-icon-btn mat-icon-button-small"
+                          [class.filter-active]="isFiltered(col.key)"
+                          [matMenuTriggerFor]="inputMenu"
+                          (click)="$event.stopPropagation()"
+                          [matTooltip]="isFiltered(col.key)
+                            ? col.header + ': ' + filterValues()[col.key]
+                            : 'Filtruj: ' + col.header">
+                    <mat-icon svgIcon="{{ isFiltered(col.key)
+                      ? 'filter_alt' : 'filter_alt_off' }}">
+                    </mat-icon>
+                  </button>
+
+                  <mat-menu #inputMenu="matMenu" class="crm-filter-menu">
+                    <div class="filter-menu-content"
+                         (click)="$event.stopPropagation()">
+                      <div class="filter-menu-title">{{ col.header }}</div>
+                      <mat-form-field appearance="outline"
+                                      class="filter-input ellipsis-input">
+                        <mat-label>{{ col.filter.placeholder ?? 'Szukaj...' }}</mat-label>
+                        <input matInput
+                               [type]="col.filter.type === 'number' ? 'number' : 'text'"
+                               [formControl]="getFormControl(col.key)">
+                        @if (isFiltered(col.key)) {
+                          <button mat-icon-button matSuffix aria-label="Wyczyść" class="mat-icon-button-small mr-1"
+                                  (click)="clearFilter(col.key)">
+                            <mat-icon svgIcon="close"></mat-icon>
+                          </button>
+                        }
+                      </mat-form-field>
+                    </div>
+                  </mat-menu>
+                }
+
+                <!-- DATE RANGE -->
+                @if (col.filter.type === 'daterange') {
+                  <button mat-icon-button class="filter-icon-btn mat-icon-button-small"
+                          [class.filter-active]="isFiltered(col.key)"
+                          [matMenuTriggerFor]="dateMenu"
+                          (click)="$event.stopPropagation()"
+                          [matTooltip]="isFiltered(col.key)
+                            ? 'Filtr daty aktywny'
+                            : 'Filtruj po dacie'">
+                    <mat-icon svgIcon="{{ isFiltered(col.key)
+                      ? 'filter_alt' : 'filter_alt_off' }}">
+                    </mat-icon>
+                  </button>
+
+                  <mat-menu #dateMenu="matMenu" class="crm-filter-menu">
+                    <div class="filter-menu-content"
+                         (click)="$event.stopPropagation()">
+                      <div class="filter-menu-title">{{ col.header }}</div>
+                      <mat-form-field appearance="outline"
+                                      class="filter-input ellipsis-input">
+                        <mat-label>Od</mat-label>
+                        <input matInput type="date" [formControl]="getDateRangeControl(col.key, 'from')">
+                      </mat-form-field>
+                      <mat-form-field appearance="outline"
+                                      class="filter-input ellipsis-input">
+                        <mat-label>Do</mat-label>
+                        <input matInput type="date" [formControl]="getDateRangeControl(col.key, 'to')">
+                      </mat-form-field>
+                      @if (isFiltered(col.key)) {
+                        <button mat-button class="clear-date-btn"
+                                (click)="clearFilter(col.key)">
+                          Wyczyść
+                        </button>
+                      }
+                    </div>
+                  </mat-menu>
+                }
+
+              }
+            </div>
+          }
+        </th>
+
+        <!-- ── CELL ───────────────────────────────────────────────── -->
+        <td mat-cell *matCellDef="let row"
+            [class]="getCellClass(row, col)"
+            (click)="onRowClick(row)">
+          @if (col.cellTemplate) {
+            <ng-container
+              [ngTemplateOutlet]="col.cellTemplate"
+              [ngTemplateOutletContext]="{ $implicit: row, value: getCellValue(row, col) }">
+            </ng-container>
+          } @else {
+            {{ getCellValue(row, col) ?? '—' }}
+          }
+        </td>
+        @if (showFooter()) {
+          <td mat-footer-cell *matFooterCellDef class="footer-cell">
+            @if (col.footer?.template) {
+              <ng-container [ngTemplateOutlet]="col.footer!.template!"
+                [ngTemplateOutletContext]="{ $implicit: rows, value: getFooterValue(col) }">
+              </ng-container>
+            } @else if (col.footer) {
+              {{ getFooterDisplay(col) }}
+            }
+          </td>
+        }
+
+      </ng-container>
+    }
+
+    <!-- Rows -->
+    <tr mat-header-row
+        *matHeaderRowDef="displayedColumnKeys(); sticky: config.stickyHeader !== false">
+    </tr>
+    <tr mat-row
+        *matRowDef="let row; columns: displayedColumnKeys();"
+        [class.row-clickable]="config.rowClickable">
+    </tr>
+    @if (showFooter()) {
+      <tr mat-footer-row class="footer-row"
+          *matFooterRowDef="displayedColumnKeys(); sticky: config.stickyFooter === true">
+      </tr>
+    }
+    <!-- No data -->
+    <tr class="mat-row" *matNoDataRow>
+      <td class="mat-cell no-data-cell"
+          [attr.colspan]="displayedColumnKeys().length">
+        @if (loading) {
+          <mat-spinner diameter="32" />
+        } @else {
+          <mat-icon svgIcon="{{ config.emptyIcon ?? 'search_off' }}"></mat-icon>
+          <span>{{ config.emptyMessage ?? 'Brak danych' }}</span>
+        }
+      </td>
+    </tr>
+
+  </table>
+</div>
+
+<!-- Paginator -->
+<div class="paginator-bar">
+  <mat-paginator
+    [length]="isFrontend ? (frontendDataSource.filteredData.length) : totalCount()"
+    [pageSizeOptions]="config.pageSizeOptions ?? [15, 25, 50, 100]"
+    [pageSize]="config.defaultPageSize ?? 25" [showFirstLastButtons]="true" 
+    itemsPerPageLabel="Elementów na stronie" firstPageLabel="Pierwsza strona"
+    lastPageLabel="Ostatnia strona" nextPageLabel="Następna strona" previousPageLabel="Poprzednia strona">
+  </mat-paginator>
+</div>

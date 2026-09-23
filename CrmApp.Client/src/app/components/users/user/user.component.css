@@ -1,0 +1,90 @@
+:host {
+  display: block;
+  height: 100%;
+  min-height: 0;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  align-items: center;
+  padding-top: 30px !important;
+  /* important for nested scroll areas */
+}
+
+.content {
+  max-height: calc(100vh - 74px) !important;
+}
+
+.user-form {
+  display: grid;
+  gap: 16px;
+}
+
+.mat-tree {
+  width: 50vw !important;
+}
+
+.roles-permissions-wrapper {
+    max-height: 70vh !important;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    width: 49% !important;
+}
+
+.roles-wrapper, .claims-wrapper {
+    text-align: left;
+    width: 49% !important;
+}
+
+.claims-wrapper {
+  max-height: 70vh !important;
+  overflow: auto !important;
+}
+
+@media (max-width: 600px) {
+  .col-6 {
+    width: 100% !important;
+  }
+  .user-form {
+    gap: 0px !important;
+    padding:8px !important;
+  }
+
+  .claims-wrapper, .roles-wrapper, .roles-permissions-wrapper {
+    font-size: 12px !important;
+  }
+
+  .roles-permissions-wrapper, .claims-wrapper {
+    max-height: 100% !important;
+  }
+
+  .roles-permissions-wrapper {
+    flex-direction: column !important;
+    width: 100% !important;
+    max-height: unset !important;
+  }
+  
+  .roles-wrapper { 
+    border-bottom: 1px solid var(--mat-divider-color) !important;  
+    display: block !important;
+    columns: 2 !important;
+  }
+
+  .claims-wrapper, .roles-wrapper {
+    width: 100% !important;
+    margin-bottom: 16px !important;
+    max-height: unset !important;
+    overflow: hidden !important;
+  }
+
+  .email-array-wrapper {
+    padding-bottom: 8px; 
+    max-height: 30vh !important; 
+  }
+}

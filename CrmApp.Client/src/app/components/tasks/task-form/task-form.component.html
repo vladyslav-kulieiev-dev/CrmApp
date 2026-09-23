@@ -1,0 +1,440 @@
+<div class="detail-panel" [formGroup]="form">
+
+  <!-- ── nagłówek ── -->
+  <div class="detail-header">
+    <div class="header-main">
+      <div class="header-top-row">
+        <span class="task-number">{{ isEditMode ? task!.taskNumber : 'Nowe zadanie' }}</span>
+        <!-- meta inline — tylko edit -->
+        <ng-container *ngIf="isEditMode">
+          <span class="header-meta-sep">·</span>
+          <span class="header-meta-chip">
+            <mat-icon svgIcon="person" class="meta-chip-icon"></mat-icon>
+            {{ task!.createdByFullName || '—' }}
+          </span>
+          <span class="header-meta-chip">
+            <mat-icon svgIcon="calendar_today" class="meta-chip-icon"></mat-icon>
+            {{ task!.createdAt | date:'d MMM yyyy' }}
+          </span>
+          <ng-container *ngIf="task!.assignedAt">
+            <span class="header-meta-sep">·</span>
+            <span class="header-meta-chip">
+              <mat-icon svgIcon="assignment_ind" class="meta-chip-icon"></mat-icon>
+              przypisano {{ task!.assignedAt | date:'d MMM yyyy' }}
+            </span>
+          </ng-container>
+        </ng-container>
+      </div>
+      <div class="header-badges" *ngIf="isEditMode">
+        <span class="badge" [ngClass]="stateClass(task!.state)">{{ stateLabel(task!.state) }}</span>
+        <span class="badge" [ngClass]="priorityClass(form.value.priority ?? task!.priority)">
+          {{ priorityLabel(form.value.priority ?? task!.priority) }}
+        </span>
+        <span class="badge badge-imported" *ngIf="task!.importedTask && !task!.isDeleted">Import</span>
+        <span class="badge badge-deleted" *ngIf="task!.isDeleted">Usunięte w Zoho Desk</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button mat-icon-button class="d-flex mat-icon-button-small" matTooltip="Cofnij zmiany"
+              *ngIf="isEditMode"
+              [disabled]="form.pristine || saving()"
+              (click)="undoChanges()">
+        <mat-icon svgIcon="undo"></mat-icon>
+      </button>
+      <button matButton="tonal" class="pill-sm save-btn"
+              *ngIf="task && !task!.isDeleted"
+              [disabled]="form.invalid || !isEditMode || saving()"
+              (click)="updateTaskInZohoDesk()">
+        <mat-icon svgIcon="cloud_sync"></mat-icon>
+        Wyślij do ZohoDesk
+      </button>
+      <button matButton="tonal" class="pill-sm save-btn"
+              [disabled]="form.invalid || (isEditMode && form.pristine) || saving()"
+              (click)="saveTask()">
+        <mat-icon svgIcon="{{ saving() ? 'hourglass_empty' : (isEditMode ? 'save' : 'add_task') }}"></mat-icon>
+        {{ saving() ? 'Zapisywanie...' : (isEditMode ? 'Zapisz' : 'Utwórz zadanie') }}
+      </button>
+      <button mat-icon-button class="mat-icon-button-small" (click)="closePanel()">
+        <mat-icon svgIcon="close"></mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── pasek statusów + postęp (tylko edit) ── -->
+  <div class="status-bar" *ngIf="isEditMode">
+    <div class="status-actions">
+      <button mat-button class="pill-btn"
+              *ngFor="let s of tasksStates()"
+              [class.pill-btn-active]="task!.state === s.key"
+              [disabled]="task!.state === s.key"
+              (click)="changeState(s.key)">
+        <mat-icon [svgIcon]="s.icon ?? 'radio_button_checked'"></mat-icon>
+        {{ s.key }}
+      </button>
+    </div>
+
+  </div>
+
+  <!-- ── dwukolumnowe body ── -->
+  <div class="detail-body">
+
+    <!-- ════ LEWA KOLUMNA ════ -->
+    <div class="col-main">
+
+      <!-- baner importu -->
+      <div class="import-banner" *ngIf="isEditMode && hasImported() && !task!.isDeleted">
+        <mat-icon svgIcon="sync_alt" class="import-icon"></mat-icon>
+        <span>Zaimportowane z zewnętrznego CRM &nbsp;·&nbsp; <strong>{{ task!.importedTask!.number }}</strong></span>
+        <a [href]="task!.importedTask!.url" target="_blank" class="ext-link" *ngIf="task!.importedTask!.url">
+          Otwórz źródło
+          <mat-icon svgIcon="open_in_new" style="font-size:12px;width:12px;height:12px;"></mat-icon>
+        </a>
+      </div>
+
+      <!-- ── tytuł + postęp ── -->
+      <div class="title-progress-row">
+        <div class="field-row title-field">
+          <label class="field-label">Tytuł*</label>
+          <mat-form-field appearance="outline" class="w-100 ellipsis-input field-compact">
+            <input matInput formControlName="title" placeholder="Tytuł zadania...">
+            <mat-error>Tytuł jest wymagany</mat-error>
+          </mat-form-field>
+        </div>
+        <div class="field-row progress-field-col" *ngIf="isEditMode">
+          <label class="field-label">
+            Postęp —
+            <span class="progress-pct-label"
+                  [class.progress-pct-done]="(form.value.progress ?? 0) === 100">
+              {{ form.value.progress ?? 0 }}%
+            </span>
+          </label>
+          <mat-slider min="0" max="100" step="5" class="progress-slider"
+                      [class.progress-slider-done]="(form.value.progress ?? 0) === 100">
+            <input matSliderThumb formControlName="progress">
+          </mat-slider>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <!-- ── grid pól: 4 kolumny w 1 wierszu ── -->
+      <div class="fields-grid-4">
+        <!-- Przypisany -->
+        <div class="field-item">
+          <label class="field-label">Przypisany do</label>
+          <mat-form-field appearance="outline" class="w-100 ellipsis-input field-compact">
+            <mat-select formControlName="assignedTo">
+              <mat-option [value]="null">— nieprzypisane —</mat-option>
+              <mat-option *ngFor="let u of users" [value]="u.id">{{ u.displayName }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Status — tylko create -->
+        <div class="field-item" *ngIf="!isEditMode">
+          <label class="field-label">Status*</label>
+          <mat-form-field appearance="outline" class="w-100 ellipsis-input field-compact">
+            <mat-select formControlName="state">
+              <mat-option *ngFor="let s of tasksStates()" [value]="s.value">{{ s.key }}</mat-option>
+            </mat-select>
+            <mat-error>Wybierz status</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Priorytet -->
+        <div class="field-item">
+          <label class="field-label">Priorytet*</label>
+          <mat-form-field appearance="outline" class="w-100 ellipsis-input field-compact">
+            <mat-select formControlName="priority">
+              <mat-option *ngFor="let p of tasksPriorities()" [value]="p.value">{{ p.key }}</mat-option>
+            </mat-select>
+            <mat-error>Wybierz priorytet</mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- Źródło -->
+        <div class="field-item">
+          <label class="field-label">Źródło</label>
+          <mat-form-field appearance="outline" class="w-100 ellipsis-input field-compact">
+            <mat-select formControlName="source">
+              <mat-option [value]="null">— brak —</mat-option>
+              <mat-option *ngFor="let s of taskSources()" [value]="s.key">{{ s.key }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Projekt -->
+        <div class="field-item">
+          <label class="field-label">Projekt</label>
+          <mat-form-field appearance="outline" class="w-100 ellipsis-input field-compact">
+            <mat-select formControlName="projectId">
+              <mat-option [value]="null">— brak —</mat-option>
+              <mat-option *ngFor="let p of projects" [value]="p.id">{{ p.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- Termin -->
+        <div class="field-item">
+          <label class="field-label">Termin realizacji</label>
+          <mat-form-field appearance="outline" class="w-100 ellipsis-input field-compact">
+            <input matInput [matDatepicker]="duePicker"
+                   formControlName="dueDate"
+                   placeholder="dd.mm.yyyy"
+                   [class.overdue-input]="isDueDateOverdue()">
+            <mat-datepicker-toggle matSuffix [for]="duePicker"></mat-datepicker-toggle>
+            <mat-datepicker #duePicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <!-- ── opis ── -->
+      <div class="field-row">
+        <label class="field-label">Opis</label>
+        <mat-form-field appearance="outline" class="w-100 ellipsis-input field-compact">
+          <textarea matInput formControlName="description"
+                    placeholder="Opcjonalny opis zadania..."
+                    cdkTextareaAutosize cdkAutosizeMinRows="4" cdkAutosizeMaxRows="10"></textarea>
+        </mat-form-field>
+      </div>
+
+      <!-- ── notatki ── -->
+      <div class="field-row">
+        <label class="field-label">Notatki wewnętrzne</label>
+        <mat-form-field appearance="outline" class="w-100 ellipsis-input field-compact">
+          <textarea matInput formControlName="notes" rows="3"
+                    placeholder="Notatki widoczne tylko dla zespołu..."></textarea>
+        </mat-form-field>
+      </div>
+
+      <!-- ── import CRM readonly (tylko edit) ── -->
+      <ng-container *ngIf="isEditMode && hasImported()">
+        <mat-divider></mat-divider>
+        <div class="section">
+          <span class="section-label">Dane z zewnętrznego CRM</span>
+          <div class="import-grid">
+            <div><span class="field-label">Numer</span><span class="field-readonly">{{ task!.importedTask!.number }}</span></div>
+            <div><span class="field-label">Status CRM</span><span class="field-readonly">{{ task!.importedTask!.state }}</span></div>
+            <div><span class="field-label">Kanał</span><span class="field-readonly">{{ task!.importedTask!.channel || '—' }}</span></div>
+            <div><span class="field-label">Produkt</span><span class="field-readonly">{{ task!.importedTask!.productName || '—' }}</span></div>
+            <div>
+              <span class="field-label">Termin odpowiedzi</span>
+              <span class="field-readonly" [class.overdue-val]="isImportedDueDateOverdue()">
+                {{ task!.importedTask!.responseDueDate ? (task!.importedTask!.responseDueDate | date:'d MMM yyyy') : '—' }}
+              </span>
+            </div>
+            <div>
+              <span class="field-label">Zamknięto</span>
+              <span class="field-readonly">
+                {{ task!.importedTask!.closedAt ? (task!.importedTask!.closedAt | date:'d MMM yyyy') : '—' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+    </div>
+    <!-- ════ koniec LEWEJ KOLUMNY ════ -->
+
+    <!-- ════ PRAWA KOLUMNA ════ -->
+    <div class="col-side">
+
+      <!-- ── karta: kontrahent ── -->
+      <div class="side-card">
+        <span class="section-label">Kontrahent</span>
+
+        <div class="field-item">
+          <label class="field-label">Kontrahent</label>
+          <mat-form-field appearance="outline" class="w-100 ellipsis-input field-compact">
+            <mat-select formControlName="contractorId" (selectionChange)="onContractorChange()">
+              <mat-option [value]="null">— brak —</mat-option>
+              <mat-option *ngFor="let c of contractors" [value]="c.id">{{ c.displayName }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- skeleton -->
+        <div class="summary-skeleton" *ngIf="contractorSummaryLoading()">
+          <div class="skeleton-line sk-w60"></div>
+          <div class="skeleton-line sk-w40"></div>
+          <div class="skeleton-line sk-w80"></div>
+        </div>
+
+        <!-- dane kontrahenta po załadowaniu -->
+        <ng-container *ngIf="!contractorSummaryLoading() && contractorSummary() as summary">
+
+          <div class="contractor-meta">
+            <div class="contractor-meta-item" *ngIf="summary.nip">
+              <label class="field-label">NIP</label>
+              <span class="field-readonly mono">{{ summary.nip }}</span>
+            </div>
+            <ng-container *ngIf="summary.additionalFieldValues.length > 0">
+              <div class="contractor-meta-item" *ngFor="let f of summary.additionalFieldValues">
+                <label class="field-label">{{ f.fieldName }}</label>
+                <span class="payment-badge">{{ f.fieldValue }}</span>
+              </div>
+            </ng-container>
+          </div>
+
+          <div *ngIf="summary.activeEngagementTypes.length > 0" class="engagement-chips">
+            <span class="engagement-chip" *ngFor="let type of summary.activeEngagementTypes">
+              {{ engagementTypeLabel(type) }}
+            </span>
+          </div>
+
+          <div class="no-contracts" *ngIf="summary.activeEngagementTypes.length === 0">
+            <mat-icon svgIcon="info" class="no-contracts-icon"></mat-icon>
+            <span>Brak aktywnych umów</span>
+          </div>
+
+        </ng-container>
+
+        <div class="no-contractor-hint" *ngIf="!form.value.contractorId && !contractorSummaryLoading()">
+          <mat-icon svgIcon="business" class="no-contracts-icon"></mat-icon>
+          <span>Wybierz kontrahenta, aby zobaczyć szczegóły</span>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- dane projektu -->
+        <span class="section-label">Projekt</span>
+        <ng-container *ngIf="selectedProject() as proj">
+          <div class="contractor-meta">
+            <div class="contractor-meta-item">
+              <label class="field-label">Nazwa</label>
+              <span class="field-readonly">{{ proj.name }}</span>
+            </div>
+            <div class="contractor-meta-item" *ngIf="proj.description">
+              <label class="field-label">Opis</label>
+              <span class="field-sub">{{ proj.description }}</span>
+            </div>
+          </div>
+        </ng-container>
+        <span class="field-sub" *ngIf="!selectedProject()">— brak wybranego projektu —</span>
+
+        <mat-divider></mat-divider>
+
+        <!-- osoby kontaktowe -->
+        <span class="section-label">Osoby kontaktowe</span>
+
+        <div class="field-item">
+          <label class="field-label">Wybrana osoba</label>
+          <mat-form-field appearance="outline" class="w-100 ellipsis-input field-compact">
+            <mat-select formControlName="contractorContactId"
+                        [disabled]="!form.value.contractorId">
+              <mat-option [value]="null">— brak —</mat-option>
+              <mat-option *ngFor="let c of contractorContacts" [value]="c.id">{{ c.displayName }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="contact-chips" *ngIf="contractorContacts.length > 0">
+          <div class="contact-chip"
+               *ngFor="let c of contractorContacts"
+               [class.contact-chip-selected]="form.value.contractorContactId === c.id">
+            <div class="avatar av-xs">{{ initials(c.displayName) }}</div>
+            <div class="contact-chip-info">
+              <span class="contact-chip-name">{{ c.displayName }}</span>
+              <span class="contact-chip-email" *ngIf="c.email">{{ c.email }}</span>
+            </div>
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- e-mail (tylko edit) -->
+        <ng-container *ngIf="isEditMode">
+          <span class="section-label">Wysyłka e-mail</span>
+
+          <div class="contact-item" *ngIf="contactEmail()">
+            <mat-icon class="contact-icon" svgIcon="contact_mail"></mat-icon>
+            <a [href]="'mailto:' + contactEmail()" class="contact-link">
+              {{ contactFullName() }} &lt;{{ contactEmail() }}&gt;
+            </a>
+          </div>
+
+          <div class="contact-item" *ngIf="task!.importedTask?.contactPhoneNumber">
+            <mat-icon class="contact-icon" svgIcon="phone"></mat-icon>
+            <span class="field-readonly">{{ task!.importedTask!.contactPhoneNumber }}</span>
+          </div>
+
+          <button mat-button class="pill-btn pill-btn-accent mail-btn"
+                  *ngIf="contactEmail()"
+                  (click)="showMailCompose.set(!showMailCompose())">
+            <mat-icon svgIcon="mail"></mat-icon>
+            {{ showMailCompose() ? 'Ukryj formularz' : 'Wyślij e-mail' }}
+          </button>
+
+          <crm-task-mail-compose
+            *ngIf="showMailCompose()"
+            [toEmail]="contactEmail()!"
+            [toName]="contactFullName() || ''"
+            [taskTitle]="task!.title"
+            [taskNumber]="task!.taskNumber"
+            (sent)="showMailCompose.set(false)"
+            (cancelled)="showMailCompose.set(false)">
+          </crm-task-mail-compose>
+        </ng-container>
+
+      </div>
+      <!-- koniec side-card kontrahent -->
+
+      <!-- ── karta: komentarze (tylko edit) ── -->
+      <div class="side-card comments-card" *ngIf="isEditMode">
+        <span class="section-label">Komentarze ({{ task!.comments.length }})</span>
+
+        <div class="comments-list">
+          <div class="comment" *ngFor="let c of task!.comments">
+            <div class="avatar av-sm">{{ initials(c.userFullName) }}</div>
+            <div class="comment-body">
+              <div class="comment-header">
+                <span class="comment-author">{{ c.userFullName }}</span>
+                <span class="comment-date">{{ c.postedAt | date:'d MMM, HH:mm' }}</span>
+                <span class="comment-edited" *ngIf="c.modifiedAt">(edytowano)</span>
+                <button mat-icon-button class="mat-icon-button-small edit-btn" (click)="startEditComment(c)">
+                  <mat-icon svgIcon="edit"></mat-icon>
+                </button>
+                <button mat-icon-button class="mat-icon-button-small edit-btn" (click)="deleteComment(c)">
+                  <mat-icon svgIcon="delete" class="icon-danger"></mat-icon>
+                </button>
+              </div>
+              <div class="comment-content" *ngIf="editingCommentId() !== c.id">{{ c.content }}</div>
+              <div class="comment-edit" *ngIf="editingCommentId() === c.id">
+                <mat-form-field appearance="outline" class="comment-field ellipsis-input">
+                  <textarea matInput [formControl]="editCommentControl" rows="2"></textarea>
+                </mat-form-field>
+                <div class="d-flex gap-1">
+                  <button mat-button class="pill-btn" (click)="editingCommentId.set(null)">Anuluj</button>
+                  <button mat-button class="pill-btn pill-btn-accent" (click)="saveEditComment(c)">Zapisz</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="new-comment">
+          <div class="avatar av-sm">Ty</div>
+          <div class="new-comment-input">
+            <mat-form-field appearance="outline" class="comment-field ellipsis-input">
+              <textarea matInput [formControl]="commentControl"
+                        placeholder="Dodaj komentarz..." rows="2"></textarea>
+            </mat-form-field>
+            <button mat-button class="pill-btn pill-btn-accent"
+                    [disabled]="commentControl.invalid"
+                    (click)="addComment()">
+              Dodaj
+            </button>
+          </div>
+        </div>
+
+      </div>
+      <!-- koniec side-card komentarze -->
+
+    </div>
+    <!-- ════ koniec PRAWEJ KOLUMNY ════ -->
+
+  </div>
+</div>

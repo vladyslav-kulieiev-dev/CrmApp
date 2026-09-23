@@ -1,0 +1,40 @@
+<div class="mail-compose">
+
+  <div class="compose-header">
+    <mat-icon svgIcon="send" class="compose-icon"></mat-icon>
+    <span class="compose-title">Nowa wiadomość</span>
+  </div>
+
+  <div class="mail-to-row">
+    <span class="to-label">Do:</span>
+    <span class="to-value" *ngIf="toEmail && toEmail.length">{{ toName }} &lt;{{ toEmail }}&gt;</span>
+  </div>
+
+  <form [formGroup]="form">
+    <mat-form-field appearance="outline" class="full-width ellipsis-input">
+      <mat-label>Temat</mat-label>
+      <input matInput formControlName="subject">
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width ellipsis-input mt-1">
+      <mat-label>Treść wiadomości</mat-label>
+      <textarea matInput formControlName="body" rows="5" placeholder="Wpisz treść..."></textarea>
+    </mat-form-field>
+  </form>
+
+  <div class="error-msg" *ngIf="error">{{ error }}</div>
+
+  <div class="compose-actions">
+    <button mat-button class="pill-btn" (click)="cancelled.emit()" [disabled]="sending">
+      Anuluj
+    </button>
+    <button mat-button class="pill-btn pill-btn-accent"
+            (click)="send()"
+            [disabled]="form.invalid || sending">
+      <mat-icon svgIcon="send" *ngIf="!sending"></mat-icon>
+      <mat-icon svgIcon="hourglass_empty" *ngIf="sending"></mat-icon>
+      {{ sending ? 'Wysyłanie...' : 'Wyślij e-mail' }}
+    </button>
+  </div>
+
+</div>

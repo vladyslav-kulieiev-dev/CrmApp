@@ -1,0 +1,1127 @@
+<crm-header [headerSubpageTitle]="headerLabel" [showReturnButton]="true">
+</crm-header>
+
+<div class="page h-100">
+    <mat-sidenav-container class="crm-container">
+
+        <!-- ── LEFT: nav menu ─────────────────────────────────────────────── -->
+        <mat-sidenav #menuSideNav id="menuSideNav" position="start" mode="side" [opened]="true" disableClose>
+            <div class="nav-shell">
+
+                <div class="nav-identity" *ngIf="contractor.id">
+                    <div class="nav-identity-avatar">
+                        <span>{{ contractorInitials }}</span>
+                    </div>
+                    <div class="nav-identity-text">
+                        <div class="nav-identity-name">{{ contractor.code }}</div>
+                        <div class="nav-identity-nip" *ngIf="contractor.nip">NIP: {{ contractor.nip }}</div>
+                    </div>
+                </div>
+                <div class="nav-identity new-mode" *ngIf="!contractor.id">
+                    <div class="nav-identity-avatar new">
+                        <mat-icon>add_business</mat-icon>
+                    </div>
+                    <div class="nav-identity-text">
+                        <div class="nav-identity-name">Nowy kontrahent</div>
+                        <div class="nav-identity-nip">Uzupełnij dane</div>
+                    </div>
+                </div>
+
+                <div class="nav-divider"></div>
+
+                <div class="nav-items">
+                    <button type="button" class="nav-item" *ngFor="let item of menuItems"
+                        [class.active]="selectedView?.key === item.key"
+                        [class.disabled]="!id && item.key !== 'contractor-data'"
+                        (click)="id || item.key === 'contractor-data' ? selectView(item) : null">
+                        <div class="nav-item-icon">
+                            <mat-icon [svgIcon]="item.icon!"></mat-icon>
+                        </div>
+                        <div class="nav-item-label">{{ item.name }}</div>
+                        <div class="nav-item-badge" *ngIf="getBadge(item.key!) > 0">
+                            {{ getBadge(item.key!) }}
+                        </div>
+                    </button>
+                </div>
+
+                <div class="nav-stats" *ngIf="id">
+                    <div class="nav-stat" *ngIf="contractorContractsDataSource.length">
+                        <span class="nav-stat-val">{{ contractorContractsDataSource.length }}</span>
+                        <span class="nav-stat-lbl">umów</span>
+                    </div>
+                    <div class="nav-stat" *ngIf="contractorLicensesDataSource.length">
+                        <span class="nav-stat-val">{{ contractorLicensesDataSource.length }}</span>
+                        <span class="nav-stat-lbl">licencji</span>
+                    </div>
+                    <div class="nav-stat" *ngIf="contractorContactsDataSource.length">
+                        <span class="nav-stat-val">{{ contractorContactsDataSource.length }}</span>
+                        <span class="nav-stat-lbl">kontaktów</span>
+                    </div>
+                </div>
+
+            </div>
+        </mat-sidenav>
+
+        <!-- ── RIGHT: content ─────────────────────────────────────────────── -->
+        <mat-sidenav-content class="main-content scrollable">
+
+            <!-- ── Sticky action bar ──────────────────────────────────────── -->
+            <div class="content-action-bar">
+                <div class="content-action-bar-left">
+                    <mat-icon [svgIcon]="selectedView?.icon ?? 'edit'" class="action-bar-icon"></mat-icon>
+                    <div class="action-bar-titles">
+                        <span class="action-bar-kicker">{{ selectedView?.kicker }}</span>
+                        <div class="action-bar-name-row">
+                            <span class="action-bar-name">{{ selectedView?.name }}</span>
+                            <span class="action-bar-pill" *ngIf="getBadge(selectedView?.key ?? '') > 0">
+                                {{ getBadge(selectedView?.key ?? '') }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-action-bar-right">
+
+                    <ng-container *ngIf="selectedView?.key === 'contractor-data'">
+                        <button *ngIf="canContractorsUpdate || canContractorsCreate" matButton="tonal" color="success"
+                            class="pill-sm" (click)="saveContractor()" [disabled]="savingContractor">
+                            <mat-spinner *ngIf="savingContractor" diameter="18"></mat-spinner>
+                            <mat-icon *ngIf="!savingContractor" svgIcon="save"></mat-icon>
+                            Zapisz dane
+                        </button>
+                    </ng-container>
+
+                    <ng-container *ngIf="selectedView?.key === 'contractor-contacts'">
+                        <button matButton="tonal" class="pill-sm" (click)="addNewContractorContact()">
+                            <mat-icon svgIcon="add"></mat-icon>
+                            Dodaj osobę
+                        </button>
+                        <button matButton="tonal" color="success" class="pill-sm" (click)="saveContractorContacts()"
+                            [disabled]="savingContacts">
+                            <mat-spinner *ngIf="savingContacts" diameter="18"></mat-spinner>
+                            <mat-icon *ngIf="!savingContacts" svgIcon="save"></mat-icon>
+                            Zapisz kontakty
+                        </button>
+                    </ng-container>
+
+                    <ng-container *ngIf="selectedView?.key === 'catalog-items'">
+                        <button matButton="tonal" class="pill-sm" (click)="openAddLicenseDialog()">
+                            <mat-icon svgIcon="add"></mat-icon>
+                            Rejestruj licencję
+                        </button>
+                    </ng-container>
+
+                    <ng-container *ngIf="selectedView?.key === 'contracts'">
+                        <button matButton="tonal" class="pill-sm" (click)="openAddContractDialog()">
+                            <mat-icon svgIcon="add"></mat-icon>
+                            Dodaj umowę
+                        </button>
+                    </ng-container>
+
+                </div>
+            </div>
+
+            <!-- ══ DANE KONTRAHENTA ═══════════════════════════════════════ -->
+            <ng-container *ngIf="selectedView?.key === 'contractor-data'">
+                <div class="content-shell">
+
+                    <div class="form-grid-3">
+                        <mat-form-field class="form-span-1 ellipsis-input" appearance="outline" floatLabel="always">
+                            <mat-label>Kod*</mat-label>
+                            <input matInput placeholder="KOD" [(ngModel)]="contractor.code">
+                        </mat-form-field>
+                        <mat-form-field class="form-span-2 ellipsis-input" appearance="outline" floatLabel="always">
+                            <mat-label>Nazwa*</mat-label>
+                            <input matInput placeholder="Pełna nazwa firmy..." [(ngModel)]="contractor.name"
+                                (focusout)="onContractorNameChange()">
+                        </mat-form-field>
+                        <mat-form-field class="form-span-3 ellipsis-input" appearance="outline" floatLabel="always">
+                            <mat-label>Nazwa wyświetlana</mat-label>
+                            <input matInput placeholder="Skrócona nazwa..." [(ngModel)]="contractor.displayName">
+                        </mat-form-field>
+                        <mat-form-field class="form-span-1 ellipsis-input" appearance="outline" floatLabel="always">
+                            <mat-label>NIP*</mat-label>
+                            <input matInput placeholder="000-000-00-00" [(ngModel)]="contractor.nip">
+                        </mat-form-field>
+                        <mat-form-field class="form-span-1 ellipsis-input" appearance="outline" floatLabel="always">
+                            <mat-label>EU VAT</mat-label>
+                            <input matInput placeholder="PL0000000000" [(ngModel)]="contractor.euVAT">
+                        </mat-form-field>
+                        <mat-form-field class="form-span-1 ellipsis-input compact-field" appearance="outline"
+                            floatLabel="always" *ngIf="contractor.id">
+                            <mat-label>Typ umowy</mat-label>
+                            <mat-select [(ngModel)]="contractor.currentEngagementTypes" [multiple]="true" [disabled]="true">
+                                <mat-option *ngFor="let t of engagementTypeOptions" [value]="t.value">
+                                    {{ t.name }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+
+                    <div class="subsection">
+                        <div class="subsection-title">Alternatywne numery NIP</div>
+                        <div class="alt-nip-row">
+                            <mat-form-field class="alt-nip-field ellipsis-input" appearance="outline"
+                                floatLabel="always">
+                                <mat-label>Dodaj numer NIP</mat-label>
+                                <input matInput placeholder="0000000000" [(ngModel)]="altNip"
+                                    (keyup.enter)="addAlternativeNip()">
+                                <button mat-icon-button class="mat-icon-button-small mr-1" matSuffix (click)="addAlternativeNip()" [disabled]="!altNip">
+                                    <mat-icon svgIcon="add"></mat-icon>
+                                </button>
+                            </mat-form-field>
+                        </div>
+                        <mat-chip-set *ngIf="contractor.alternativeNipNumbers?.length" class="nip-chips">
+                            <mat-chip *ngFor="let nip of contractor.alternativeNipNumbers; index as i"
+                                (removed)="removeNip(i)">
+                                {{ nip }}
+                                <button matChipRemove><mat-icon>cancel</mat-icon></button>
+                            </mat-chip>
+                        </mat-chip-set>
+                        <div class="empty-hint" *ngIf="!contractor.alternativeNipNumbers?.length">
+                            Brak alternatywnych numerów NIP
+                        </div>
+                    </div>
+
+                    <div class="subsection" *ngIf="additionalFields.length">
+                        <div class="subsection-title">Dodatkowe informacje</div>
+                        <div class="additional-fields-wrapper grid-form-4">
+                            <div class="additional-field" *ngFor="let field of additionalFields">
+                                <ng-container *ngIf="field.fieldType == EValueType.String || 
+                                    field.fieldType == EValueType.Int || field.fieldType == EValueType.Decimal">
+                                    <mat-form-field class="w-100 ellipsis-input compact-field" appearance="outline"
+                                        floatLabel="always">
+                                        <mat-label>{{ field.fieldName }}</mat-label>
+                                        <input matInput [(ngModel)]="field.fieldValue" [disabled]="!field.canEdit"
+                                            type="{{ field.fieldType == EValueType.String ? 'text' : 'number' }}"
+                                            [step]="field.fieldType == EValueType.Decimal ? '0.01' : '1'">
+                                    </mat-form-field>
+                                </ng-container>
+                                <ng-container *ngIf="field.fieldType == EValueType.Boolean">
+                                    <mat-checkbox [(ngModel)]="field.fieldValueBool" [disabled]="!field.canEdit">
+                                        {{ field.fieldName }}
+                                    </mat-checkbox>
+                                </ng-container>
+                                <ng-container *ngIf="field.fieldType == EValueType.List">
+                                    <mat-form-field class="w-100 ellipsis-input compact-field" appearance="outline"
+                                        floatLabel="always" *ngIf="field.isMultiple">
+                                        <mat-label>{{ field.fieldName }}</mat-label>
+                                        <mat-select [(ngModel)]="field.dictionaryElementIds" [multiple]="true" [disabled]="!field.canEdit">
+                                            <mat-option *ngFor="let option of field.fieldOptions" [value]="option.id">
+                                                {{ option.value }}
+                                            </mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                    <mat-form-field class="w-100 ellipsis-input compact-field" appearance="outline"
+                                        floatLabel="always" *ngIf="!field.isMultiple">
+                                        <mat-label>{{ field.fieldName }}</mat-label>
+                                        <mat-select [(ngModel)]="field.dictionaryElementId" [multiple]="false" [disabled]="!field.canEdit">
+                                            <mat-option *ngFor="let option of field.fieldOptions" [value]="option.id">
+                                                {{ option.value }}
+                                            </mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </ng-container>
+
+            <!-- ══ OSOBY KONTAKTOWE ═══════════════════════════════════════ -->
+            <ng-container *ngIf="selectedView?.key === 'contractor-contacts'">
+                <div class="content-shell">
+
+                    <div class="contacts-grid" *ngIf="contractorContactsDataSource.length; else noContacts">
+                        <div class="contact-card" *ngFor="let contact of contractorContactsDataSource">
+
+                            <!-- VIEW ──────────────────────────────────── -->
+                            <ng-container *ngIf="!contact.isEditMode">
+                                <div class="contact-card-header">
+                                    <div class="contact-avatar">
+                                        <span>{{ contactInitials(contact) }}</span>
+                                    </div>
+                                    <div class="contact-header-text">
+                                        <div class="contact-name">
+                                            {{ contact.displayName || ((contact.firstname || '') + ' ' +
+                                            (contact.lastname || '')).trim() || '—' }}
+                                        </div>
+                                        <div class="contact-position">{{ contact.position || 'Brak stanowiska' }}</div>
+                                    </div>
+                                    <div class="contact-actions">
+                                        <button mat-icon-button class="d-flex" (click)="contact.isEditMode = true" matTooltip="Edytuj">
+                                            <mat-icon svgIcon="edit"></mat-icon>
+                                        </button>
+                                        <button mat-icon-button class="d-flex" (click)="removeContractorContact(contact)"
+                                            matTooltip="Usuń">
+                                            <mat-icon class="icon-danger" svgIcon="delete"></mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="contact-card-body">
+                                    <div class="contact-info-row" *ngIf="contact.position">
+                                        <mat-icon class="contact-info-icon">work_outline</mat-icon>
+                                        <span>{{ contact.position }}</span>
+                                    </div>
+                                    <div class="contact-info-row" *ngIf="contact.email">
+                                        <mat-icon class="contact-info-icon">mail_outline</mat-icon>
+                                        <a [href]="'mailto:' + contact.email" class="contact-link">{{ contact.email
+                                            }}</a>
+                                    </div>
+                                    <div class="contact-info-row" *ngIf="contact.phoneNumber">
+                                        <mat-icon class="contact-info-icon">phone_outlined</mat-icon>
+                                        <a [href]="'tel:' + contact.phoneNumber" class="contact-link">{{
+                                            contact.phoneNumber }}</a>
+                                    </div>
+                                    <div class="contact-empty"
+                                        *ngIf="!contact.position && !contact.email && !contact.phoneNumber">
+                                        Brak danych kontaktowych — kliknij edytuj.
+                                    </div>
+                                </div>
+                            </ng-container>
+
+                            <!-- EDIT ──────────────────────────────────────── -->
+                            <ng-container *ngIf="contact.isEditMode">
+                                <div class="contact-edit-header">
+                                    <div class="contact-avatar">
+                                        <span>{{ contactInitials(contact) }}</span>
+                                    </div>
+                                    <span class="contact-edit-title">Edytuj kontakt</span>
+                                    <div class="contact-actions">
+                                        <button mat-icon-button class="d-flex" (click)="contact.isEditMode = false"
+                                            matTooltip="Zatwierdź">
+                                            <mat-icon class="icon-success" svgIcon="success"></mat-icon>
+                                        </button>
+                                        <button mat-icon-button class="d-flex" (click)="removeContractorContact(contact)"
+                                            matTooltip="Usuń">
+                                            <mat-icon class="icon-danger" svgIcon="delete"></mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="contact-edit-form">
+                                    <div class="contact-edit-row">
+                                        <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                            floatLabel="always">
+                                            <mat-label>Imię</mat-label>
+                                            <input matInput [(ngModel)]="contact.firstname"
+                                                (ngModelChange)="onContactNameChange(contact, 'firstname')"
+                                                placeholder="Jan">
+                                        </mat-form-field>
+                                        <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                            floatLabel="always">
+                                            <mat-label>Nazwisko</mat-label>
+                                            <input matInput [(ngModel)]="contact.lastname"
+                                                (ngModelChange)="onContactNameChange(contact, 'lastname')"
+                                                placeholder="Kowalski">
+                                        </mat-form-field>
+                                    </div>
+                                    <mat-form-field class="w-100 ellipsis-input compact-field" appearance="outline"
+                                        floatLabel="always">
+                                        <mat-label>Nazwa wyświetlana</mat-label>
+                                        <input matInput [(ngModel)]="contact.displayName" placeholder="Jan Kowalski">
+                                    </mat-form-field>
+                                    <mat-form-field class="w-100 ellipsis-input compact-field" appearance="outline"
+                                        floatLabel="always">
+                                        <mat-label>Stanowisko</mat-label>
+                                        <input matInput [(ngModel)]="contact.position" placeholder="Dyrektor IT">
+                                    </mat-form-field>
+                                    <div class="contact-edit-row">
+                                        <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                            floatLabel="always">
+                                            <mat-label>E-mail</mat-label>
+                                            <input matInput [(ngModel)]="contact.email" placeholder="jan@firma.pl">
+                                        </mat-form-field>
+                                        <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                            floatLabel="always">
+                                            <mat-label>Telefon</mat-label>
+                                            <input matInput [(ngModel)]="contact.phoneNumber"
+                                                placeholder="+48 600 000 000">
+                                        </mat-form-field>
+                                    </div>
+                                </div>
+                            </ng-container>
+
+                        </div>
+                    </div>
+
+                    <ng-template #noContacts>
+                        <div class="empty-section">
+                            <mat-icon>contact_mail</mat-icon>
+                            <div class="empty-title">Brak osób kontaktowych</div>
+                            <div class="empty-sub">Kliknij "Dodaj osobę" aby dodać pierwszą osobę kontaktową.</div>
+                        </div>
+                    </ng-template>
+
+                </div>
+            </ng-container>
+
+            <!-- ══ LICENCJE I DODATKI ══════════════════════════════════════ -->
+            <ng-container *ngIf="selectedView?.key === 'catalog-items'">
+                <div class="content-shell">
+ 
+                    <!-- Formularz nowej licencji -->
+                    <div class="inline-add-card" *ngIf="newLicense">
+                        <div class="inline-add-header">
+                            <mat-icon svgIcon="shopping_cart"></mat-icon>
+                            <span class="inline-add-title">Rejestruj licencję / dodatek</span>
+                            <div class="inline-add-actions">
+                                <button matButton="tonal" class="pill-sm" color="success" (click)="saveLicense()"
+                                    matTooltip="Zapisz" [disabled]="savingLicense">
+                                    <mat-spinner *ngIf="savingLicense" diameter="18"></mat-spinner>
+                                    <mat-icon *ngIf="!savingLicense" class="icon-success" svgIcon="save"></mat-icon>
+                                    Zapisz
+                                </button>
+                                <button mat-icon-button class="d-flex mat-icon-button-small" (click)="cancelNewLicense()" matTooltip="Anuluj">
+                                    <mat-icon class="icon-danger" svgIcon="close"></mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="inline-add-form">
+                            <div class="inline-add-row">
+                                <mat-form-field class="ellipsis-input compact-field" style="flex:2" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Produkt z katalogu*</mat-label>
+                                    <mat-select [(ngModel)]="newLicense.catalogItemId">
+                                        <mat-option *ngFor="let item of catalogItems" [value]="item.id">
+                                            {{ item.code }} — {{ item.name }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Typ licencji*</mat-label>
+                                    <mat-select [(ngModel)]="newLicense.licenseType">
+                                        <mat-option *ngFor="let t of licenseTypeOptions" [value]="t.value">
+                                            {{ t.name }}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Liczba sztuk</mat-label>
+                                    <input matInput type="number" min="1" [(ngModel)]="newLicense.quantity"
+                                        placeholder="1">
+                                </mat-form-field>
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Nr seryjny (generowany automatycznie)</mat-label>
+                                    <input matInput [(ngModel)]="newLicense.serialNumber"
+                                        placeholder="XXXX-XXXX-XXXX" disabled>
+                                </mat-form-field>
+                            </div>
+                            <div class="inline-add-row">
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Wystawiono</mat-label>
+                                    <input matInput [matDatepicker]="licIssued" [(ngModel)]="newLicense.issuedAt">
+                                    <mat-datepicker-toggle matSuffix [for]="licIssued"></mat-datepicker-toggle>
+                                    <mat-datepicker #licIssued></mat-datepicker>
+                                </mat-form-field>
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Ważny od*</mat-label>
+                                    <input matInput [matDatepicker]="licFrom" [(ngModel)]="newLicense.validFrom">
+                                    <mat-datepicker-toggle matSuffix [for]="licFrom"></mat-datepicker-toggle>
+                                    <mat-datepicker #licFrom></mat-datepicker>
+                                </mat-form-field>
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Ważny do (puste = bezterminowo)</mat-label>
+                                    <input matInput [matDatepicker]="licTo" [(ngModel)]="newLicense.expiresAt">
+                                    <mat-datepicker-toggle matSuffix [for]="licTo"></mat-datepicker-toggle>
+                                    <mat-datepicker #licTo></mat-datepicker>
+                                </mat-form-field>
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Koniec gwarancji</mat-label>
+                                    <input matInput [matDatepicker]="licWarranty"
+                                        [(ngModel)]="newLicense.warrantyEndDate">
+                                    <mat-datepicker-toggle matSuffix [for]="licWarranty"></mat-datepicker-toggle>
+                                    <mat-datepicker #licWarranty></mat-datepicker>
+                                </mat-form-field>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- Lista licencji -->
+                    <div class="licenses-list" *ngIf="contractorLicensesDataSource.length; else noLicenses">
+                        <ng-container *ngFor="let lic of contractorLicensesDataSource">
+ 
+                            <!-- Karta licencji -->
+                            <div class="license-card" [class.license-editing]="editingLicenseId === lic.id">
+                                <div class="license-card-left">
+                                    <div class="license-product-icon">
+                                        <mat-icon svgIcon="shopping_cart"></mat-icon>
+                                    </div>
+                                    <div class="license-product-text">
+                                        <div class="license-product-name">{{ lic.catalogItem?.name ?? '—' }}</div>
+                                        <div class="license-product-code">{{ lic.catalogItem?.code ?? '' }}</div>
+                                    </div>
+                                </div>
+                                <div class="license-meta-grid">
+                                    <div class="license-meta-item">
+                                        <span class="license-meta-lbl">Typ</span>
+                                        <span class="license-meta-val">{{ lic.licenseTypeName }}</span>
+                                    </div>
+                                    <div class="license-meta-item">
+                                        <span class="license-meta-lbl">Nr seryjny</span>
+                                        <span class="license-meta-val">{{ lic.serialNumber || '—' }}</span>
+                                    </div>
+                                    <div class="license-meta-item">
+                                        <span class="license-meta-lbl">Ważność</span>
+                                        <span class="license-meta-val">
+                                            {{ lic.validFrom | date:'dd.MM.yyyy' }}
+                                            <ng-container *ngIf="lic.expiresAt"> — {{ lic.expiresAt |
+                                                date:'dd.MM.yyyy' }}</ng-container>
+                                            <ng-container *ngIf="!lic.expiresAt"> — bezterminowo</ng-container>
+                                        </span>
+                                    </div>
+                                    <div class="license-meta-item">
+                                        <span class="license-meta-lbl">Gwarancja</span>
+                                        <span class="license-meta-val license-warranty-badge"
+                                            [class.warranty-ok]="lic.warrantyStatus === 1 || lic.warrantyStatus === 2"
+                                            [class.warranty-none]="!lic.warrantyStatus">
+                                            {{ lic.warrantyStatusName || 'Brak' }}
+                                        </span>
+                                    </div>
+                                    <div class="license-meta-item" *ngIf="lic.warrantyEndDate">
+                                        <span class="license-meta-lbl">Koniec gwarancji</span>
+                                        <span class="license-meta-val">{{ lic.warrantyEndDate |
+                                            date:'dd.MM.yyyy' }}</span>
+                                    </div>
+                                    <div class="license-meta-item" *ngIf="lic.upgradeDate">
+                                        <span class="license-meta-lbl">Upgrade</span>
+                                        <span class="license-meta-val">{{ lic.upgradeDate | date:'dd.MM.yyyy' }}</span>
+                                    </div>
+                                </div>
+                                <div class="license-qty">
+                                    <span class="license-qty-val">{{ lic.quantity }}</span>
+                                    <span class="license-qty-lbl">szt.</span>
+                                </div>
+                                <div class="license-card-actions">
+                                    <button mat-icon-button
+                                        [matTooltip]="editingLicenseId === lic.id ? 'Anuluj edycję' : 'Edytuj'"
+                                        (click)="openEditLicense(lic, $event)"
+                                        [class.action-active]="editingLicenseId === lic.id">
+                                        <mat-icon [svgIcon]="editingLicenseId === lic.id ? 'close' : 'edit'"></mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+ 
+                            <!-- Inline edit form -->
+                            <div class="license-edit-panel" *ngIf="editingLicenseId === lic.id && editingLicenseCopy">
+                                <div class="detail-section-header">
+                                    <mat-icon svgIcon="edit"></mat-icon>
+                                    <span>Edycja licencji</span>
+                                    <div class="ml-auto d-flex gap-2">
+                                        <button matButton="tonal" color="success" class="pill-sm"
+                                            (click)="saveEditLicense()" [disabled]="savingEditLicense">
+                                            <mat-spinner *ngIf="savingEditLicense" diameter="16"></mat-spinner>
+                                            <mat-icon *ngIf="!savingEditLicense" svgIcon="save"></mat-icon>
+                                            Zapisz
+                                        </button>
+                                        <button mat-icon-button class="mat-icon-button-small" (click)="cancelEditLicense()">
+                                            <mat-icon class="icon-danger" svgIcon="close"></mat-icon>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="edit-form-grid">
+                                    <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                        floatLabel="always">
+                                        <mat-label>Produkt z katalogu</mat-label>
+                                        <mat-select [(ngModel)]="editingLicenseCopy.catalogItemId">
+                                            <mat-option *ngFor="let item of catalogItems" [value]="item.id">
+                                                {{ item.code }} — {{ item.name }}
+                                            </mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                    <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                        floatLabel="always">
+                                        <mat-label>Typ licencji</mat-label>
+                                        <mat-select [(ngModel)]="editingLicenseCopy.licenseType">
+                                            <mat-option *ngFor="let t of licenseTypeOptions" [value]="t.value">
+                                                {{ t.name }}</mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                    <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                        floatLabel="always">
+                                        <mat-label>Liczba sztuk</mat-label>
+                                        <input matInput type="number" min="1"
+                                            [(ngModel)]="editingLicenseCopy.quantity">
+                                    </mat-form-field>
+                                    <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                        floatLabel="always">
+                                        <mat-label>Ważny od</mat-label>
+                                        <input matInput [matDatepicker]="editLicFrom"
+                                            [(ngModel)]="editingLicenseCopy.validFrom">
+                                        <mat-datepicker-toggle matSuffix [for]="editLicFrom"></mat-datepicker-toggle>
+                                        <mat-datepicker #editLicFrom></mat-datepicker>
+                                    </mat-form-field>
+                                    <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                        floatLabel="always">
+                                        <mat-label>Ważny do (puste = bezterminowo)</mat-label>
+                                        <input matInput [matDatepicker]="editLicTo"
+                                            [(ngModel)]="editingLicenseCopy.expiresAt">
+                                        <mat-datepicker-toggle matSuffix [for]="editLicTo"></mat-datepicker-toggle>
+                                        <mat-datepicker #editLicTo></mat-datepicker>
+                                    </mat-form-field>
+                                    <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                        floatLabel="always">
+                                        <mat-label>Koniec gwarancji</mat-label>
+                                        <input matInput [matDatepicker]="editLicWarranty"
+                                            [(ngModel)]="editingLicenseCopy.warrantyEndDate">
+                                        <mat-datepicker-toggle matSuffix [for]="editLicWarranty"></mat-datepicker-toggle>
+                                        <mat-datepicker #editLicWarranty></mat-datepicker>
+                                    </mat-form-field>
+                                    <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                        floatLabel="always">
+                                        <mat-label>Data upgrade</mat-label>
+                                        <input matInput [matDatepicker]="editLicUpgrade"
+                                            [(ngModel)]="editingLicenseCopy.upgradeDate">
+                                        <mat-datepicker-toggle matSuffix [for]="editLicUpgrade"></mat-datepicker-toggle>
+                                        <mat-datepicker #editLicUpgrade></mat-datepicker>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+ 
+                        </ng-container>
+                    </div>
+ 
+                    <ng-template #noLicenses>
+                        <div class="empty-section">
+                            <mat-icon>shopping_cart</mat-icon>
+                            <div class="empty-title">Brak licencji</div>
+                            <div class="empty-sub">Kliknij "Rejestruj licencję" aby dodać pierwszą.</div>
+                        </div>
+                    </ng-template>
+ 
+                </div>
+            </ng-container>
+
+            <!-- ══ UMOWY I PAKIETY ════════════════════════════════════════ -->   
+             <ng-container *ngIf="selectedView?.key === 'contracts'">
+                <div class="content-shell">
+ 
+                    <!-- Formularz nowej umowy -->
+                    <div class="inline-add-card" *ngIf="newContract">
+                        <div class="inline-add-header">
+                            <mat-icon>{{ contractIcon(newContract.engagementType) }}</mat-icon>
+                            <span class="inline-add-title">Nowa umowa</span>
+                            <div class="inline-add-actions">
+                                <button matButton="tonal" class="pill-sm" color="success" (click)="saveContract()"
+                                    matTooltip="Zapisz" [disabled]="savingContract">
+                                    <mat-spinner *ngIf="savingContract" diameter="18"></mat-spinner>
+                                    <mat-icon *ngIf="!savingContract" class="icon-success" svgIcon="save"></mat-icon>
+                                    Zapisz
+                                </button>
+                                <button mat-icon-button class="d-flex mat-icon-button-small" (click)="cancelNewContract()" matTooltip="Anuluj">
+                                    <mat-icon class="icon-danger" svgIcon="close"></mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="inline-add-form">
+                            <div class="inline-add-row">
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Numer umowy</mat-label>
+                                    <input matInput [(ngModel)]="newContract.contractNumber"
+                                        placeholder="UMW/2026/001" disabled>
+                                </mat-form-field>
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Typ umowy</mat-label>
+                                    <mat-select [(ngModel)]="newContract.engagementType" (ngModelChange)="onEngagementTypeChange(newContract)">
+                                        <mat-option *ngFor="let t of filteredEngagementTypes" [value]="t.value">
+                                            {{ t.name }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Rozliczenie</mat-label>
+                                    <mat-select [(ngModel)]="newContract.billingType" [disabled]="newContract.engagementType === EEngagementType.MonthlyBilling">
+                                        <mat-option *ngFor="let t of billingTypes" [value]="t.value">
+                                            {{ t.name }}
+                                        </mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Kwota rozliczenia</mat-label>
+                                    <input matInput type="number" min="0" [(ngModel)]="newContract.billingAmount"
+                                        placeholder="0">
+                                </mat-form-field>
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Limit godzin</mat-label>
+                                    <input matInput type="number" min="0" [(ngModel)]="newContract.hoursLimit"
+                                        placeholder="0">
+                                    <span matSuffix class="input-suffix">h</span>
+                                </mat-form-field>
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Odnowienie godzin</mat-label>
+                                    <mat-select [(ngModel)]="$any(newContract).renewalType">
+                                        <mat-option *ngFor="let r of renewalTypeOptions" [value]="r.value">
+                                            {{ r.name }}</mat-option>
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
+                            <div class="inline-add-row">
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Obowiązuje od</mat-label>
+                                    <input matInput [matDatepicker]="conFrom" [(ngModel)]="newContract.validFrom">
+                                    <mat-datepicker-toggle matSuffix [for]="conFrom"></mat-datepicker-toggle>
+                                    <mat-datepicker #conFrom></mat-datepicker>
+                                </mat-form-field>
+                                <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                    floatLabel="always">
+                                    <mat-label>Obowiązuje do (puste = bezterminowo)</mat-label>
+                                    <input matInput [matDatepicker]="conTo" [(ngModel)]="newContract.validTo">
+                                    <mat-datepicker-toggle matSuffix [for]="conTo"></mat-datepicker-toggle>
+                                    <mat-datepicker #conTo></mat-datepicker>
+                                </mat-form-field>
+                                <mat-checkbox *ngIf="newContract.engagementType !== EEngagementType.MonthlyBilling"
+                                    [(ngModel)]="$any(newContract).allowOverLimit" class="mt-2">
+                                    Bez twardego limitu (możliwe przekroczenie)
+                                </mat-checkbox>
+                            </div>
+                        </div>
+                    </div>
+ 
+                    <!-- ─── Tabela umów ───────────────────────────────────────── -->
+                    <div class="contracts-table-wrap" *ngIf="contractorContractsDataSource.length; else noContracts">
+                        <table class="contracts-table">
+                            <thead>
+                                <tr>
+                                    <th class="ct-col-status"></th>
+                                    <th class="ct-col-info">Umowa</th>
+                                    <th class="ct-col-validity">Ważność</th>
+                                    <th class="ct-col-num" matTooltip="Godziny startowe bieżącego miesiąca">
+                                        Start<br><small>h</small>
+                                    </th>
+                                    <th class="ct-col-num ct-col-prev"
+                                        matTooltip="Godziny z poprzedniego miesiąca — osobne rozliczenie, nie sumują się z bieżącą pulą">
+                                        Poprz. mies.<br><small>Przekroczenie limitu </small>
+                                    </th>
+                                    <th class="ct-col-num" matTooltip="Zużyte godziny w bieżącym miesiącu">
+                                        Użyto<br><small>bm.</small>
+                                    </th>
+                                    <th class="ct-col-num" matTooltip="Godziny pozostałe w bieżącym miesiącu">
+                                        Zostało<br><small>bm.</small>
+                                    </th>
+                                    <th class="ct-col-renewal">Odnowienie</th>
+                                    <th class="ct-col-actions"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <ng-container *ngFor="let c of contractorContractsDataSource">
+ 
+                                    <!-- ── Wiersz danych ─────────────────── -->
+                                    <tr class="ct-row"
+                                        [class.ct-row-active]="isContractActive(c)"
+                                        [class.ct-row-expired]="isContractExpired(c)"
+                                        [class.ct-row-expanded]="expandedContractId === c.id"
+                                        (click)="toggleExpand(c)">
+ 
+                                        <!-- Status -->
+                                        <td class="ct-col-status">
+                                            <div class="ct-status-dot"
+                                                [class.dot-active]="isContractActive(c)"
+                                                [class.dot-expired]="isContractExpired(c)"
+                                                [matTooltip]="isContractExpired(c) ? 'Wygasła' : isContractActive(c) ? 'Aktywna' : 'Oczekująca'">
+                                            </div>
+                                        </td>
+ 
+                                        <!-- Info: typ + numer -->
+                                        <td class="ct-col-info">
+                                            <div class="ct-info-cell">
+                                                <div class="ct-type-icon"
+                                                    [class.icon-hours]="c.engagementType === EEngagementType.HoursPackage"
+                                                    [class.icon-monthly]="c.engagementType === EEngagementType.MonthlyBilling">
+                                                    <mat-icon>{{ contractIcon(c.engagementType) }}</mat-icon>
+                                                </div>
+                                                <div class="ct-info-text">
+                                                    <div class="ct-num">{{ c.contractNumber }}</div>
+                                                    <div class="ct-type-lbl">{{ c.engagementTypeName }}</div>
+                                                </div>
+                                                <div class="ct-overlimit-badge" *ngIf="c.allowOverLimit"
+                                                    matTooltip="Pakiet bez twardego limitu godzin">
+                                                    <mat-icon svgIcon="all_inclusive"></mat-icon>
+                                                </div>
+                                            </div>
+                                        </td>
+ 
+                                        <!-- Ważność -->
+                                        <td class="ct-col-validity">
+                                            <div class="ct-validity-cell">
+                                                <span>{{ (c.validFrom | date:'dd.MM.yy') ?? '—' }}</span>
+                                                <span class="ct-date-sep" *ngIf="c.validTo || !c.validFrom">→</span>
+                                                <span *ngIf="c.validTo">{{ c.validTo | date:'dd.MM.yy' }}</span>
+                                                <span *ngIf="!c.validTo" class="ct-indef">bezterm.</span>
+                                            </div>
+                                        </td>
+ 
+                                        <!-- Godziny startowe -->
+                                        <td class="ct-col-num">
+                                            <span class="ct-hours-val" *ngIf="c.hoursLimit">
+                                                {{ c.hoursLimit }}
+                                            </span>
+                                            <span class="ct-na" *ngIf="!c.hoursLimit">—</span>
+                                        </td>
+ 
+                                        <!-- Poprzedni miesiąc (osobne rozliczenie) -->
+                                        <td class="ct-col-num ct-col-prev">
+                                            <ng-container *ngIf="c.hoursFromPrevMonth">
+                                                <span class="ct-prev-badge"
+                                                    [class.prev-debt]="c.hoursFromPrevMonth < 0"
+                                                    [class.prev-ok]="c.hoursFromPrevMonth >= 0"
+                                                    [matTooltip]="c.hoursFromPrevMonth < 0
+                                                        ? (c.hoursFromPrevMonth * -1) + 'h do osobnego rozliczenia — nie sumuje się z bm.'
+                                                        : 'Brak nadgodzin z poprzedniego miesiąca'">
+                                                    <mat-icon class="prev-icon">
+                                                        {{ c.hoursFromPrevMonth < 0 ? 'warning' : 'check_circle' }}
+                                                    </mat-icon>
+                                                    {{ c.hoursFromPrevMonth }}h
+                                                </span>
+                                            </ng-container>
+                                            <span class="ct-na" *ngIf="!c.hoursFromPrevMonth">—</span>
+                                        </td>
+ 
+                                        <!-- Użyto bm. -->
+                                        <td class="ct-col-num">
+                                            <ng-container *ngIf="c.hoursUsedCurrentMonth || c.hoursUsed">
+                                                <div class="ct-used-cell">
+                                                    <span [class.ct-over-limit]="hoursMonthPercent(c) > 100">
+                                                        {{ (c.hoursUsedCurrentMonth ?? c.hoursUsed ?? 0) }}h
+                                                    </span>
+                                                    <div class="ct-mini-bar" *ngIf="c.hoursLimit > 0">
+                                                        <div class="ct-mini-fill"
+                                                            [style.width.%]="min100(hoursMonthPercent(c))"
+                                                            [class.fill-warn]="hoursMonthPercent(c) >= 75 && hoursMonthPercent(c) < 100"
+                                                            [class.fill-danger]="hoursMonthPercent(c) >= 100">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </ng-container>
+                                            <span class="ct-na" *ngIf="!c.hoursUsedCurrentMonth && !c.hoursUsed">—</span>
+                                        </td>
+ 
+                                        <!-- Zostało bm. -->
+                                        <td class="ct-col-num">
+                                            <ng-container *ngIf="c.hoursRemainingCurrentMonth || c.hoursRemaining">
+                                                <span class="ct-remaining-badge"
+                                                    [class.rem-ok]="(c.hoursRemainingCurrentMonth ?? c.hoursRemaining ?? 0) > 0"
+                                                    [class.rem-zero]="(c.hoursRemainingCurrentMonth ?? c.hoursRemaining ?? 0) === 0"
+                                                    [class.rem-over]="(c.hoursRemainingCurrentMonth ?? c.hoursRemaining ?? 0) < 0">
+                                                    {{ (c.hoursRemainingCurrentMonth ?? c.hoursRemaining ?? 0) }}h
+                                                </span>
+                                            </ng-container>
+                                            <span class="ct-na" *ngIf="!c.hoursRemainingCurrentMonth && !c.hoursRemaining">—</span>
+                                        </td>
+ 
+                                        <!-- Odnowienie -->
+                                        <td class="ct-col-renewal">
+                                            <span class="ct-renewal-badge" *ngIf="c.renewalType != null && c.renewalType != undefined">
+                                                <mat-icon class="renewal-icon">autorenew</mat-icon>
+                                                {{ getRenewalLabel(c.renewalType) }}
+                                            </span>
+                                            <span class="ct-na" *ngIf="c.renewalType == null || c.renewalType == undefined">—</span>
+                                        </td>
+ 
+                                        <!-- Akcje -->
+                                        <td class="ct-col-actions" (click)="$event.stopPropagation()">
+                                            <button mat-icon-button class="d-flex"
+                                                [matTooltip]="editingContractId === c.id ? 'Anuluj edycję' : 'Edytuj umowę'"
+                                                (click)="openEditContract(c, $event)"
+                                                [class.action-active]="editingContractId === c.id">
+                                                <mat-icon [svgIcon]="editingContractId === c.id ? 'close' : 'edit'"></mat-icon>
+                                            </button>
+                                            <mat-icon class="ct-expand-icon"
+                                                [class.rotated]="expandedContractId === c.id">
+                                                expand_more
+                                            </mat-icon>
+                                        </td>
+                                    </tr>
+ 
+                                    <!-- ── Expanded detail row ────────────── -->
+                                    <tr class="ct-detail-row" *ngIf="expandedContractId === c.id">
+                                        <td colspan="9">
+                                            <div class="ct-detail-panel">
+ 
+                                                <!-- Edycja umowy -->
+                                                <div class="ct-detail-section" *ngIf="editingContractId === c.id && editingContractCopy">
+                                                    <div class="ct-detail-header">
+                                                        <mat-icon svgIcon="edit"></mat-icon>
+                                                        <span>Edycja umowy</span>
+                                                        <div class="ct-detail-header-actions">
+                                                            <button matButton="tonal" color="success" class="pill-sm"
+                                                                (click)="saveEditContract()"
+                                                                [disabled]="savingEditContract">
+                                                                <mat-spinner *ngIf="savingEditContract"
+                                                                    diameter="16"></mat-spinner>
+                                                                <mat-icon *ngIf="!savingEditContract"
+                                                                    svgIcon="save"></mat-icon>
+                                                                Zapisz zmiany
+                                                            </button>
+                                                            <button mat-icon-button class="mat-icon-button-small" (click)="cancelEditContract()"
+                                                                matTooltip="Anuluj">
+                                                                <mat-icon class="icon-danger" svgIcon="close"></mat-icon>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div class="edit-form-grid">
+                                                        <mat-form-field class="ellipsis-input compact-field"
+                                                            appearance="outline" floatLabel="always">
+                                                            <mat-label>Typ umowy</mat-label>
+                                                            <mat-select [(ngModel)]="editingContractCopy.engagementType">
+                                                                <mat-option *ngFor="let t of filteredEngagementTypes"
+                                                                    [value]="t.value">{{ t.name }}</mat-option>
+                                                            </mat-select>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                                            floatLabel="always" *ngIf="editingContractCopy.engagementType !== EEngagementType.MonthlyBilling">
+                                                            <mat-label>Rozliczenie</mat-label>
+                                                            <mat-select [(ngModel)]="editingContractCopy.billingType">
+                                                                <mat-option *ngFor="let t of billingTypes" [value]="t.value">
+                                                                    {{ t.name }}
+                                                                </mat-option>
+                                                            </mat-select>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="ellipsis-input compact-field" appearance="outline"
+                                                            floatLabel="always">
+                                                            <mat-label>Kwota rozliczenia</mat-label>
+                                                            <input matInput type="number" min="0" [(ngModel)]="editingContractCopy.billingAmount"
+                                                                placeholder="0">
+                                                        </mat-form-field>
+                                                        <mat-form-field class="ellipsis-input compact-field"
+                                                            appearance="outline" floatLabel="always"
+                                                            *ngIf="editingContractCopy.engagementType !== EEngagementType.MonthlyBilling">
+                                                            <mat-label>Limit godzin (startowych)</mat-label>
+                                                            <input matInput type="number" min="0"
+                                                                [(ngModel)]="editingContractCopy.hoursLimit">
+                                                            <span matSuffix class="input-suffix">h</span>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="ellipsis-input compact-field"
+                                                            appearance="outline" floatLabel="always"
+                                                            *ngIf="editingContractCopy.engagementType !== EEngagementType.MonthlyBilling">
+                                                            <mat-label>Odnowienie godzin</mat-label>
+                                                            <mat-select [(ngModel)]="$any(editingContractCopy).renewalType">
+                                                                <mat-option *ngFor="let r of renewalTypeOptions"
+                                                                    [value]="r.value">{{ r.name }}</mat-option>
+                                                            </mat-select>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="ellipsis-input compact-field"
+                                                            appearance="outline" floatLabel="always"
+                                                            *ngIf="$any(editingContractCopy).renewalType">
+                                                            <mat-label>Data odnowienia</mat-label>
+                                                            <input matInput [matDatepicker]="renewDp"
+                                                                [(ngModel)]="$any(editingContractCopy).renewalDate">
+                                                            <mat-datepicker-toggle matSuffix
+                                                                [for]="renewDp"></mat-datepicker-toggle>
+                                                            <mat-datepicker #renewDp></mat-datepicker>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="ellipsis-input compact-field"
+                                                            appearance="outline" floatLabel="always">
+                                                            <mat-label>Obowiązuje od</mat-label>
+                                                            <input matInput [matDatepicker]="editConFrom"
+                                                                [(ngModel)]="editingContractCopy.validFrom">
+                                                            <mat-datepicker-toggle matSuffix
+                                                                [for]="editConFrom"></mat-datepicker-toggle>
+                                                            <mat-datepicker #editConFrom></mat-datepicker>
+                                                        </mat-form-field>
+                                                        <mat-form-field class="ellipsis-input compact-field"
+                                                            appearance="outline" floatLabel="always">
+                                                            <mat-label>Obowiązuje do</mat-label>
+                                                            <input matInput [matDatepicker]="editConTo"
+                                                                [(ngModel)]="editingContractCopy.validTo">
+                                                            <mat-datepicker-toggle matSuffix
+                                                                [for]="editConTo"></mat-datepicker-toggle>
+                                                            <mat-datepicker #editConTo></mat-datepicker>
+                                                        </mat-form-field>
+                                                    </div>
+                                                    <div class="edit-checkboxes" *ngIf="editingContractCopy.engagementType !== EEngagementType.MonthlyBilling">
+                                                        <mat-checkbox [(ngModel)]="$any(editingContractCopy).allowOverLimit">
+                                                            Bez twardego limitu godzin — zezwól na przekroczenie
+                                                            (nadgodziny traktowane jako osobne rozliczenie)
+                                                        </mat-checkbox>
+                                                    </div>
+                                                </div>
+ 
+                                                <!-- Aktualizacja godzin bm. -->
+                                                <div class="ct-detail-section">
+                                                    <div class="ct-detail-header">
+                                                        <mat-icon svgIcon="timer"></mat-icon>
+                                                        <span>Zużycie godzin w bm.</span>
+                                                        <span class="overlimit-note" *ngIf="c.allowOverLimit">
+                                                            <mat-icon svgIcon="all_inclusive"></mat-icon>
+                                                            Pakiet bez limitu
+                                                        </span>
+                                                    </div>
+                                                    <div class="snapshot-update-row">
+                                                        <mat-form-field
+                                                            class="snapshot-input compact-field ellipsis-input"
+                                                            appearance="outline" floatLabel="always">
+                                                            <mat-label>Zużyte godziny w bm.</mat-label>
+                                                            <input matInput type="number" min="0"
+                                                                [max]="c.allowOverLimit ? null : c.hoursLimit"
+                                                                [(ngModel)]="snapshotHoursInput[c.id]"
+                                                                placeholder="0">
+                                                            <span matSuffix class="input-suffix">h</span>
+                                                            <mat-hint *ngIf="!c.allowOverLimit && c.hoursLimit">
+                                                                Limit: {{ c.hoursLimit }}h
+                                                            </mat-hint>
+                                                            <mat-hint *ngIf="c.allowOverLimit">
+                                                                Bez limitu — przekroczenie trafia do rozliczenia
+                                                            </mat-hint>
+                                                        </mat-form-field>
+                                                        <button matButton="tonal" color="success" class="pill-sm"
+                                                            (click)="saveSnapshot(c)"
+                                                            [disabled]="savingSnapshot === c.id">
+                                                            <mat-spinner *ngIf="savingSnapshot === c.id"
+                                                                diameter="18"></mat-spinner>
+                                                            <mat-icon *ngIf="savingSnapshot !== c.id"
+                                                                svgIcon="save"></mat-icon>
+                                                            Zapisz
+                                                        </button>
+                                                    </div>
+ 
+                                                    <!-- Info o poprzednim miesiącu -->
+                                                    <div class="prev-month-note"
+                                                        *ngIf="c.hoursFromPrevMonth != null && c.hoursFromPrevMonth !== 0">
+                                                        <mat-icon
+                                                            [class.text-danger]="c.hoursFromPrevMonth < 0"
+                                                            [class.text-success]="c.hoursFromPrevMonth > 0">
+                                                            {{ c.hoursFromPrevMonth < 0 ? 'warning' : 'info' }}
+                                                        </mat-icon>
+                                                        <span *ngIf="c.hoursFromPrevMonth < 0">
+                                                            Poprzedni miesiąc: <strong>
+                                                                {{ c.hoursFromPrevMonth * -1 }}h</strong>
+                                                            nadgodzin do osobnego rozliczenia — nie sumują się z bieżącą
+                                                            pulą.
+                                                        </span>
+                                                        <span *ngIf="c.hoursFromPrevMonth > 0">
+                                                            Poprzedni miesiąc: <strong>
+                                                                {{ c.hoursFromPrevMonth }}h</strong>
+                                                            niezużytych — pula nie jest przenoszona (rozliczenie
+                                                            miesięczne).
+                                                        </span>
+                                                    </div>
+                                                </div>
+ 
+                                                <!-- Historia snapshotów -->
+                                                <div class="ct-detail-section">
+                                                    <div class="ct-detail-header">
+                                                        <mat-icon svgIcon="history"></mat-icon>
+                                                        <span>Historia godzin</span>
+                                                        <span class="ct-snap-count"
+                                                            *ngIf="getSnapshots(c).length">
+                                                            {{ getSnapshots(c).length }}
+                                                        </span>
+                                                    </div>
+                                                    <div class="snapshots-loading" *ngIf="loadingSnapshots === c.id">
+                                                        <mat-spinner diameter="20"></mat-spinner>
+                                                        <span>Ładowanie historii...</span>
+                                                    </div>
+                                                    <ng-container *ngIf="loadingSnapshots !== c.id">
+                                                        <div class="snapshots-table" *ngIf="getSnapshots(c).length; else noSnaps">
+                                                            <div class="snapshot-row"
+                                                                *ngFor="let s of getSnapshots(c)">
+                                                                <div class="snapshot-date">
+                                                                    {{ s.snapshotDate | date:'dd.MM.yyyy HH:mm' }}
+                                                                </div>
+                                                                <div class="snapshot-bars">
+                                                                    <div class="snapshot-bar-mini-track">
+                                                                        <div class="snapshot-bar-mini-fill"
+                                                                            [style.width.%]="snapshotPercent(s, c)"
+                                                                            [class.hours-bar-warn]="snapshotPercent(s, c) >= 75 && snapshotPercent(s, c) < 90"
+                                                                            [class.hours-bar-danger]="snapshotPercent(s, c) >= 90">
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="snapshot-values">
+                                                                    <span class="snap-used">{{ s.hoursUsed }}h użyto</span>
+                                                                    <span class="snap-sep">·</span>
+                                                                    <span class="snap-remaining">{{ s.hoursRemaining }}h
+                                                                        pozostało</span>
+                                                                </div>
+                                                                <div class="snapshot-author" *ngIf="s.createdByUser">
+                                                                    {{ s.createdByUser.displayName }}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <ng-template #noSnaps>
+                                                            <div class="snapshots-empty">
+                                                                Brak historii godzin dla tej umowy.
+                                                            </div>
+                                                        </ng-template>
+                                                    </ng-container>
+                                                </div>
+ 
+                                            </div>
+                                        </td>
+                                    </tr>
+ 
+                                </ng-container>
+                            </tbody>
+                        </table>
+                    </div>
+ 
+                    <ng-template #noContracts>
+                        <div class="empty-section">
+                            <mat-icon svgIcon="contract"></mat-icon>
+                            <div class="empty-title">Brak umów</div>
+                            <div class="empty-sub">Kliknij "Dodaj umowę" aby zarejestrować pierwszą umowę z
+                                kontrahentem.</div>
+                        </div>
+                    </ng-template>
+ 
+                </div>
+            </ng-container>
+
+            <!-- ══ PROJEKTY ═══════════════════════════════════════════════ -->
+            <ng-container *ngIf="selectedView?.key === 'projects'">
+                <div class="content-shell">
+
+                    <div class="projects-list" *ngIf="contractorProjectsDataSource.length; else noProjects">
+                        <div class="project-card" *ngFor="let p of contractorProjectsDataSource">
+                            <div class="project-card-left">
+                                <div class="project-state-dot" [class]="'state-' + p.state"></div>
+                            </div>
+                            <div class="project-card-body">
+                                <div class="project-name">{{ p.name }}</div>
+                                <div class="project-meta">
+                                    <span *ngIf="p.projectManager">
+                                        <mat-icon class="meta-icon">person</mat-icon>
+                                        {{ p.projectManager.firstName }} {{ p.projectManager.lastName }}
+                                    </span>
+                                    <span *ngIf="p.startDate">
+                                        <mat-icon class="meta-icon">calendar_today</mat-icon>
+                                        {{ p.startDate | date:'dd.MM.yyyy' }}
+                                        <ng-container *ngIf="p.endDate"> — {{ p.endDate | date:'dd.MM.yyyy'
+                                            }}</ng-container>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="project-state-chip" [class]="'state-chip-' + p.state">
+                                <mat-icon [svgIcon]="p.stateIcon ?? 'pending'"
+                                    [ngClass]="p.stateIconClass ?? ''"></mat-icon>
+                                {{ p.stateName }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <ng-template #noProjects>
+                        <div class="empty-section">
+                            <mat-icon svgIcon="strategy"></mat-icon>
+                            <div class="empty-title">Brak projektów</div>
+                            <div class="empty-sub">Projekty dla tego kontrahenta możesz dodać w widoku Projektów.</div>
+                        </div>
+                    </ng-template>
+
+                </div>
+            </ng-container>
+
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+</div>

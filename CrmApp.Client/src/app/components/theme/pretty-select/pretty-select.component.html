@@ -1,0 +1,73 @@
+<label *ngIf="label && labelStyle === 'outside'" class="pretty-select-label d-block">
+    {{ label }}
+    <div class="selected-count" *ngIf="showSelectedCount && multiple && value">{{ value.length }}</div>
+</label>
+<button mat-stroked-button class="pill sort ellipsis-btn" [disabled]="disabled" style="width: 100%;"
+    [matMenuTriggerFor]="menu" #menuTrigger="matMenuTrigger" #triggerBtn (menuOpened)="onMenuOpened()">
+    <ng-container *ngIf="selectedValueName && selectedValueName !== ''; else showLabel">
+        <span class="btn-label" [ngClass]="{ 'disabled': disabled }">
+            {{ appendLabelToDisplayExpr ? label + ': ' : '' }}
+            {{ selectedValueName }}
+        </span>
+    </ng-container>
+    <ng-template #showLabel>
+        <span class="btn-label" [ngClass]="{ 'disabled': disabled }" *ngIf="labelStyle == 'inside'">{{ label }}</span>
+        <span class="btn-placeholder" *ngIf="labelStyle == 'outside' && !disabled">{{ placeholder }}</span>
+        <span class="btn-placeholder disabled" *ngIf="labelStyle == 'outside' && disabled">-</span>
+    </ng-template>
+    <mat-icon class="btn-toggle" [ngClass]="{ 'disabled': disabled }" svgIcon="keyboard_arrow_down"></mat-icon>
+</button>
+<mat-menu #menu="matMenu" [hasBackdrop]="true" panelClass="menu-match-trigger">
+    <div class="pretty-menu" (click)="$event.stopPropagation()">
+        <ng-container *ngIf="enableSearchValue">
+            <mat-form-field appearance="fill" class="pretty-search-field">
+                <mat-icon matPrefix>search</mat-icon>
+                <input matInput [(ngModel)]="filterText" [placeholder]="searchPlaceholder || 'Szukaj...'"
+                    (keydown.space)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()"
+                    (click)="$event.stopPropagation()" />
+                <button *ngIf="filterText" matSuffix mat-icon-button aria-label="Wyczyść filtr"
+                    (click)="clearFilter($event)" class="mat-icon-button-small mr-1">
+                    <mat-icon svgIcon="close"></mat-icon>
+                </button>
+            </mat-form-field>
+            <div *ngIf="enableCreateNew && filterTextTrimmed && filteredData.length === 0" class="pretty-create-wrapper">
+                <button mat-button color="primary" class="pretty-create-btn" (click)="createNewFromFilter($event)">
+                    Utwórz „{{ filterTextTrimmed }}"
+                </button>
+            </div>
+        </ng-container>
+        <ng-container *ngIf="dataSource && dataSource.length && valueExpr && displayExpr">
+            <!-- Select all row -->
+            <ng-container *ngIf="showSelectAll && multiple && filteredData.length && dataSource.length">
+                <button type="button" class="ps-row"
+                    [class.ps-row--active]="isAllSelected()"
+                    (click)="toggleAll()">
+                    <span class="ps-row__label">Zaznacz wszystkie</span>
+                    <crm-pretty-radio-button
+                        [selected]="isAllSelected()"
+                        (selectedChange)="toggleAll()"
+                        selectHint="Zaznacz wszystkie"
+                        unselectHint="Odznacz wszystkie">
+                    </crm-pretty-radio-button>
+                </button>
+            </ng-container>
+            <!-- Item rows -->
+            <ng-container *ngFor="let item of filteredData; trackBy: trackByVal">
+                <button type="button" class="ps-row"
+                    [class.ps-row--active]="!!isSelected(item[valueExpr])"
+                    (click)="toggle(!isSelected(item[valueExpr]), item[valueExpr])">
+                    <span class="ps-row__label" [title]="item[displayExpr]">{{ item[displayExpr] }}</span>
+                    <crm-pretty-radio-button
+                        [selected]="!!isSelected(item[valueExpr])"
+                        (selectedChange)="toggle($event, item[valueExpr])"
+                        selectHint="Wybierz"
+                        unselectHint="Odznacz">
+                    </crm-pretty-radio-button>
+                </button>
+            </ng-container>
+            <div class="pretty-empty" *ngIf="!enableCreateNew && filteredData.length === 0">
+                Brak wyników.
+            </div>
+        </ng-container>
+    </div>
+</mat-menu>

@@ -1,0 +1,198 @@
+<crm-header [headerSubpageTitle]="headerLabel" [showReturnButton]="true"></crm-header>
+<div class="page h-100">
+  <div class="content w-100">
+     <!-- flex-wrap -->
+    <form class="user-form col-6" [formGroup]="form" (ngSubmit)="submit()" autocomplete="on">
+      <div class="w-100 d-flex justify-content-between my-2">
+        <button *ngIf="((canUsersUpdate && id) || id == loggedUserId) || (canUsersCreate && !id)" matButton="tonal" color="success" 
+          type="submit" [disabled]="selectedView == 'password-change'">
+          <mat-icon svgIcon="success"></mat-icon>
+          Zapisz
+        </button>
+        <mat-button-toggle-group *ngIf="!(isMobile$ | async)" name="viewSelection" [(value)]="selectedView"
+          (change)="selectedViewChange()">
+          <mat-button-toggle *ngFor="let item of views" [value]="item.value"
+            [disabled]="!id && item.value == 'password-change'">{{item.name}}
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+        <button matButton="tonal" type="button" *ngIf="(isMobile$ | async)" color="default" class="pill mx-2" [matMenuTriggerFor]="menu">
+          <mat-icon svgIcon="keyboard_arrow_down"></mat-icon>
+          {{selectedViewName}}
+        </button>
+        <mat-menu #menu="matMenu">
+          <ng-container *ngFor="let item of views">
+            <button type="button" mat-menu-item (click)="selectedView = item.value">
+              <span>{{item.name}}</span>
+            </button>
+          </ng-container>
+        </mat-menu>
+      </div>
+      <ng-container *ngIf="selectedView == 'user-form'">
+        <mat-form-field appearance="outline" 
+          [class.input-with-error-under]="email?.touched && email?.invalid">
+          <mat-label>E-mail</mat-label>
+          <input matInput type="email" formControlName="email" placeholder="Wprowadź email" required [disabled]="!id"
+            autocomplete="email"/>
+          <mat-error class="input-error" *ngIf="email?.hasError('required')">E-mail jest wymagany</mat-error>
+          <mat-error class="input-error" *ngIf="email?.hasError('email')">Podaj poprawny adres e-mail</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Imię</mat-label>
+          <input matInput formControlName="firstName" placeholder="Wprowadź imię" required />
+          <mat-error *ngIf="firstName?.hasError('required')">Imię jest wymagane</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Nazwisko</mat-label>
+          <input matInput formControlName="lastName" placeholder="Wprowadź nazwisko" required />
+          <mat-error *ngIf="lastName?.hasError('required')">Nazwisko jest wymagane</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Nazwa wyświetlana</mat-label>
+          <input matInput formControlName="displayName" placeholder="Wprowadź nazwę wyświetlaną w systemie" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Nr telefonu</mat-label>
+          <input matInput formControlName="phoneNumber" placeholder="Wprowadź nr telefonu" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Dostawca kalendarza</mat-label>
+          <mat-select formControlName="calendarProvider" placeholder="Wybierz dostawcę kalendarza">
+            <mat-option *ngFor="let provider of calendarProviders" [value]="provider">{{ provider }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Identyfikator kalendarza</mat-label>
+          <input matInput formControlName="calendarId" placeholder="Wprowadź identyfikator kalendarza" />
+        </mat-form-field>
+        <mat-form-field appearance="outline"
+          [class.input-with-error-under]="altEmail?.touched && altEmail?.invalid">
+          <mat-label>Alternatywne adresy e-mail</mat-label>
+          <input matInput type="email" formControlName="altEmail" placeholder="Wprowadź e-mail" autocomplete="email"/>
+          <button mat-icon-button matSuffix type="button" (click)="addAlternativeEmail()" class="mat-icon-button-small mr-1">
+            <mat-icon svgIcon="add"></mat-icon>
+          </button>
+          <mat-error *ngIf="altEmail?.hasError('email')">Podaj poprawny adres e-mail</mat-error>
+        </mat-form-field>
+        <mat-chip-set class="email-array-wrapper">
+          <mat-chip *ngFor="let email of user.alternativeEmails; index as i" (removed)="removeAlternativeEmail(i)">
+            {{ email }}
+            <button matChipRemove aria-label="Usuń Email">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip>
+        </mat-chip-set>
+        <mat-divider [hidden]="id" class="mb-3"></mat-divider>
+        <mat-form-field appearance="outline" [hidden]="id"
+          [class.input-with-error-under]="password?.touched && password?.invalid">
+          <mat-label>Hasło</mat-label>
+          <input matInput [type]="hide ? 'password' : 'text'" formControlName="password" placeholder="Wprowadź hasło"
+            required autocomplete="current-password" />
+          <button mat-icon-button type="button" matSuffix (click)="hide = !hide"
+            [attr.aria-label]="hide ? 'Pokaż hasło' : 'Ukryj hasło'" class="mat-icon-button-small mr-1">
+            <mat-icon>{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="password?.hasError('required')">Hasło jest wymagane</mat-error>
+          <mat-error *ngIf="password?.hasError('minlength')">Hasło musi się składać z min. 8 znaków</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline" [hidden]="id"
+          [class.input-with-error-under]="confirmPassword?.touched && confirmPassword?.invalid">
+          <mat-label>Wprowadź ponownie hasło</mat-label>
+          <input matInput [type]="hide ? 'password' : 'text'" formControlName="confirmPassword"
+            placeholder="Wprowadź ponownie hasło" required autocomplete="current-password" />
+          <mat-error *ngIf="confirmPassword?.hasError('required')">Wprowadź ponownie hasło</mat-error>
+          <mat-error *ngIf="confirmPassword?.hasError('minlength')">Hasło musi się składać z min. 8 znaków</mat-error>
+        </mat-form-field>
+      </ng-container>
+      <ng-container *ngIf="selectedView == 'password-change'">
+        <mat-form-field class="mt-3" appearance="outline" *ngIf="loggedUserId === id"
+          [class.input-with-error-under]="oldPassword?.touched && oldPassword?.invalid">
+          <mat-label>Stare hasło</mat-label>
+          <input matInput [type]="hideOldPass ? 'password' : 'text'" formControlName="oldPassword" placeholder="Wprowadź stare hasło"
+            required autocomplete="current-password" />
+          <button mat-icon-button type="button" matSuffix (click)="hideOldPass = !hideOldPass"
+            [attr.aria-label]="hideOldPass ? 'Pokaż hasło' : 'Ukryj hasło'" class="mat-icon-button-small mr-1">
+            <mat-icon>{{ hideOldPass ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="oldPassword?.hasError('required') && loggedUserId === id">Stare hasło jest wymagane</mat-error>
+          <mat-error *ngIf="oldPassword?.hasError('minlength')">Hasło musi się składać z min. 8 znaków</mat-error>
+        </mat-form-field>
+        <mat-form-field [class.mt-3]="loggedUserId !== id" appearance="outline"
+          [class.input-with-error-under]="password?.touched && password?.invalid">
+          <mat-label>Hasło</mat-label>
+          <input matInput [type]="hide ? 'password' : 'text'" formControlName="password" placeholder="Wprowadź hasło"
+            required autocomplete="current-password" />
+          <button mat-icon-button type="button" matSuffix (click)="hide = !hide" class="mat-icon-button-small mr-1"
+            [attr.aria-label]="hide ? 'Pokaż hasło' : 'Ukryj hasło'">
+            <mat-icon>{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="password?.hasError('required')">Hasło jest wymagane</mat-error>
+          <mat-error *ngIf="password?.hasError('minlength')">Hasło musi się składać z min. 8 znaków</mat-error>
+        </mat-form-field>
+        <mat-form-field appearance="outline"
+          [class.input-with-error-under]="confirmPassword?.touched && confirmPassword?.invalid">
+          <mat-label>Wprowadź ponownie hasło</mat-label>
+          <input matInput [type]="hide ? 'password' : 'text'" formControlName="confirmPassword"
+            placeholder="Wprowadź ponownie hasło" required autocomplete="current-password" />
+          <mat-error *ngIf="confirmPassword?.hasError('required')">Wprowadź ponownie hasło</mat-error>
+          <mat-error *ngIf="confirmPassword?.hasError('minlength')">Hasło musi się składać z min. 8 znaków</mat-error>
+          <mat-error *ngIf="confirmPassword?.hasError('mismatch')">Hasła są różne</mat-error>
+        </mat-form-field> 
+      </ng-container>
+    </form>
+    <ng-container *ngIf="selectedView == 'password-change'">
+        <div class="w-100 d-flex justify-content-center align-items-center">
+          <button *ngIf="canUserPasswordUpdate" matButton="tonal" color="success" (click)="changePassword()">
+            <mat-icon svgIcon="key_vertical"></mat-icon>
+            Zmień hasło
+          </button>
+        </div>
+    </ng-container>
+    <ng-container *ngIf="selectedView == 'permissions'">
+      <div class="col-6 roles-permissions-wrapper">
+        <div class="roles-wrapper">
+          <div *ngFor="let role of roles">
+            <mat-checkbox [checked]="isSelected(role)" [disabled]="!canUserClaimsManage" 
+              (change)="checkRole(role.name, $event.checked)"></mat-checkbox>
+            {{ role.name }}
+          </div>
+        </div>
+        <div class="claims-wrapper">
+          <div *ngFor="let claim of claims">
+            <mat-checkbox [checked]="isClaimSelected(claim.key)"
+              (change)="checkClaim(claim, $event.checked)" [disabled]="isInSelectedRoles(claim) || !canUserClaimsManage"></mat-checkbox>
+            {{ claim.name }}
+          </div>
+        </div>
+      </div>
+      <!-- <mat-tree #tree [dataSource]="roles" [childrenAccessor]="childrenAccessor">
+        <mat-tree-node *matTreeNodeDef="let node;" matTreeNodePadding [matTreeNodePaddingIndent]="20">
+          <div class="mat-tree-node-wrapper">
+            <div class="mat-tree-node">
+              <button matIconButton class="mat-icon-button-small toggle-btn" matTreeNodeToggle disabled>
+              </button>
+              <mat-checkbox [checked]="isSelected(node)"></mat-checkbox>
+              {{ node.name }}
+            </div>
+          </div>
+        </mat-tree-node>
+        <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding
+          [matTreeNodePaddingIndent]="20" [cdkTreeNodeTypeaheadLabel]="node.name">
+          <div class="mat-tree-node-wrapper">
+            <div class="mat-tree-node">
+              <button matIconButton class="mat-icon-button-small toggle-btn" matTreeNodeToggle
+                [attr.aria-label]="node.name" [class.expanded]="tree.isExpanded(node)">
+                <mat-icon svgIcon="{{ tree.isExpanded(node) ? 'keyboard_arrow_up' : 'chevron_right' }}">
+                </mat-icon>
+              </button>
+              <mat-checkbox [checked]="isSelected(node)"></mat-checkbox>
+              {{node.name}}
+            </div>
+          </div>
+          <div *ngIf="tree.isExpanded(node)">
+              <ng-container matTreeNodeOutlet></ng-container>
+          </div>
+        </mat-nested-tree-node>
+      </mat-tree> -->
+    </ng-container>
+  </div>
+</div>

@@ -1,0 +1,136 @@
+<!-- ── tryb readonly ── -->
+<ng-container *ngIf="isReadonly">
+    <mat-icon *ngIf="value" [svgIcon]="value" [style.color]="color"
+        [ngStyle]="{ 'font-size': size + 'px', 'height': size + 'px', 'width': size + 'px' }">
+    </mat-icon>
+    <span *ngIf="!value" class="no-icon-slot"
+        [ngStyle]="{ 'width': size + 'px', 'height': size + 'px', 'font-size': (size * 0.55) + 'px' }">
+        ?
+    </span>
+</ng-container>
+
+<!-- ── tryb edycji ── -->
+<ng-container *ngIf="!isReadonly">
+
+    <!-- przycisk mini-fab -->
+    <button *ngIf="buttonSize === 'small'"
+        matMiniFab class="no-shadow transparent ellipsis"
+        [ngClass]="btnClass"
+        [matMenuTriggerFor]="iconMenu"
+        #iconMenuTrigger="matMenuTrigger">
+         <mat-icon *ngIf="value" [svgIcon]="value" [style.color]="color"
+            [ngStyle]="{ 'font-size': size + 'px', 'height': size + 'px', 'width': size + 'px' }">
+        </mat-icon>
+        <span *ngIf="!value" class="no-icon-slot"
+            [ngStyle]="{ 'width': size + 'px', 'height': size + 'px', 'font-size': (size * 0.55) + 'px' }">
+            +
+        </span>
+    </button>
+
+    <!-- przycisk fab -->
+    <button *ngIf="buttonSize === 'big'"
+        matFab class="no-shadow transparent ellipsis"
+        [ngClass]="btnClass"
+        [matMenuTriggerFor]="iconMenu"
+        #iconMenuTrigger="matMenuTrigger">
+         <mat-icon *ngIf="value" [svgIcon]="value" [style.color]="color"
+            [ngStyle]="{ 'font-size': size + 'px', 'height': size + 'px', 'width': size + 'px' }">
+        </mat-icon>
+        <span *ngIf="!value" class="no-icon-slot"
+            [ngStyle]="{ 'width': size + 'px', 'height': size + 'px', 'font-size': (size * 0.55) + 'px' }">
+            +
+        </span>
+    </button>
+
+    <!-- menu -->
+    <mat-menu class="icon-picker-menu" #iconMenu="matMenu" [hasBackdrop]="false">
+        <div class="picker-shell" (click)="$event.stopPropagation()">
+
+            <!-- wyszukiwarka -->
+            <div class="picker-search">
+                <mat-icon class="search-icon">search</mat-icon>
+                <input class="search-input" type="text" [(ngModel)]="filterValue"
+                    placeholder="Szukaj ikony..."
+                    (keydown.escape)="clearFilter()">
+                <button *ngIf="filterValue" class="search-clear" (click)="clearFilter()">
+                    <mat-icon>close</mat-icon>
+                </button>
+            </div>
+
+            <!-- paleta kolorów -->
+            <div class="color-strip">
+                <span class="color-strip-label">Kolor</span>
+                <div class="color-swatches">
+
+                    <!-- presetowe kolory -->
+                    <button *ngFor="let c of presetColors"
+                        class="color-swatch"
+                        [class.swatch-active]="isPresetActive(c)"
+                        [class.swatch-default]="c.value === null"
+                        [style.--swatch-color]="c.value ?? 'transparent'"
+                        (click)="selectPresetColor(c)"
+                        [matTooltip]="c.label" matTooltipPosition="above">
+                        <span class="swatch-dot"></span>
+                    </button>
+
+                    <!-- separator -->
+                    <div class="swatch-sep"></div>
+
+                    <!-- własny kolor -->
+                    <label class="color-swatch swatch-custom"
+                        [class.swatch-active]="isCustomColor"
+                        matTooltip="Własny kolor" matTooltipPosition="above">
+                        <mat-icon class="palette-icon">palette</mat-icon>
+                        <input type="color" class="hidden-color-input"
+                            [value]="customColorHex"
+                            (input)="selectCustomColor($any($event.target).value)">
+                    </label>
+
+                </div>
+
+                <!-- podgląd wybranego koloru -->
+                <div class="color-preview" *ngIf="color">
+                    <mat-icon [svgIcon]="value ?? 'help'" [style.color]="color"
+                        style="font-size: 18px; width: 18px; height: 18px;"></mat-icon>
+                    <span class="color-preview-val">{{ color }}</span>
+                    <button class="color-clear-btn" (click)="selectPresetColor(presetColors[0])"
+                        matTooltip="Usuń kolor">
+                        <mat-icon style="font-size: 14px; width: 14px; height: 14px;">close</mat-icon>
+                    </button>
+                </div>
+            </div>
+
+            <!-- licznik -->
+            <div class="picker-count d-flex justify-content-between align-items-center">
+                {{ filteredIcons.length }} / {{ allIcons.length }} ikon
+                <button *ngIf="value" class="color-clear-btn" (click)="clearValue()"
+                    matTooltip="Wyczyść">
+                    <mat-icon style="font-size: 14px; width: 14px; height: 14px;">close</mat-icon>
+                </button>
+            </div>
+
+            <!-- siatka ikon -->
+            <div class="icon-grid" *ngIf="filteredIcons.length; else noIcons">
+                <button *ngFor="let icon of filteredIcons"
+                    class="icon-cell"
+                    [class.icon-cell-active]="value === icon"
+                    (click)="selectIcon(icon)"
+                    [matTooltip]="icon" matTooltipPosition="above"
+                    [matTooltipShowDelay]="600">
+                    <mat-icon [svgIcon]="icon" [style.color]="color"
+                        style="font-size: 20px; width: 20px; height: 20px;">
+                    </mat-icon>
+                </button>
+            </div>
+
+            <ng-template #noIcons>
+                <div class="no-icons">
+                    <mat-icon svgIcon="search_off" style="font-size:28px;width:28px;height:28px;opacity:.3;"></mat-icon>
+                    <span>Brak ikon dla „{{ filterValue }}"</span>
+                </div>
+            </ng-template>
+
+        </div>
+    </mat-menu>
+
+</ng-container>

@@ -1,0 +1,183 @@
+<crm-header [headerSubpageTitle]="'Projekty'"></crm-header>
+<div class="page h-100">
+    <mat-sidenav-container class="crm-container">
+        <mat-sidenav position="end" mode="side" [(opened)]="isEditPanelOpened">
+            <div class="col-12 px-3 d-flex justify-content-between align-items-center mt-4">
+                <button matButton="tonal" class="d-flex no-label" (click)="closeEditPanel()">
+                    <mat-icon svgIcon="back"></mat-icon>
+                </button>
+                <button matButton="tonal" color="success" class="save mx-2" (click)="saveChanges()" 
+                    [disabled]="(selectedProject?.id && !canProjectsUpdate) || (!selectedProject?.id && !canProjectsCreate)">
+                    <mat-icon svgIcon="save"></mat-icon> Zapisz zmiany
+                </button>
+            </div>
+            <ng-container *ngIf="selectedProject">
+                <div class="col-12 p-2 mt-3">
+                    <mat-form-field class="w-100" appearance="outline" floatLabel="always">
+                        <mat-label>Nazwa*</mat-label>
+                        <input matInput placeholder="..." [(ngModel)]="selectedProject!.name">
+                    </mat-form-field>
+                </div>
+                <div class="col-12 px-2 mt-3">
+                    <mat-form-field class="w-100" appearance="outline" floatLabel="always">
+                        <mat-label>Manager projektu</mat-label>
+                        <mat-select [(ngModel)]="selectedProject!.projectManagerId" placeholder="Wybierz" (ngModelChange)="onProjectManagerChange()">
+                            <mat-option *ngFor="let user of users" [value]="user.id">
+                                {{ user.firstName }} {{ user.lastName }}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-12 px-2 mt-3">
+                    <mat-form-field class="w-100" appearance="outline" floatLabel="always">
+                        <mat-label>Status projektu</mat-label>
+                        <mat-select [(ngModel)]="selectedProject!.state" placeholder="Wybierz">
+                            <mat-option *ngFor="let item of projectsStates" [value]="item.value">
+                                <mat-icon [svgIcon]="item.icon ?? 'pending'" [ngClass]="item.iconClass"></mat-icon>
+                                {{ item.name }}
+                            </mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+                <div class="col-12 px-2 mt-3">
+                    <mat-form-field class="w-100" appearance="outline" floatLabel="always">
+                        <mat-label>Start projektu</mat-label>
+                        <input matInput placeholder="..." [(ngModel)]="selectedProject!.startDate" [matDatepicker]="pickerStart" (ngModelChange)="onDateChange('startDate')">
+                        <mat-datepicker-toggle matIconSuffix [for]="pickerStart"></mat-datepicker-toggle>
+                        <mat-datepicker #pickerStart></mat-datepicker>
+                    </mat-form-field>
+                </div>
+                <div class="col-12 px-2 mt-3">
+                    <mat-form-field class="w-100" appearance="outline" floatLabel="always">
+                        <mat-label>Koniec projektu</mat-label>
+                        <input matInput placeholder="..." [(ngModel)]="selectedProject!.endDate" [matDatepicker]="pickerEnd" (ngModelChange)="onDateChange('endDate')">
+                        <mat-datepicker-toggle matIconSuffix [for]="pickerEnd"></mat-datepicker-toggle>
+                        <mat-datepicker #pickerEnd></mat-datepicker>
+                    </mat-form-field>
+                </div>
+                <div class="col-12 px-2 mt-3">
+                    <mat-form-field class="w-100" appearance="outline" floatLabel="always">
+                        <mat-label>Kontrahent</mat-label>
+                        <mat-select [(ngModel)]="selectedProject!.contractorId" placeholder="Wybierz">
+                            <mat-option *ngFor="let contr of contractors" [value]="contr.id">
+                                {{ contr.displayName }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-icon svgIcon="close" (click)="selectedProject!.contractorId = undefined; $event.stopPropagation()"
+                            [class.disabled]="!selectedProject!.contractorId" matSuffix></mat-icon>
+                    </mat-form-field>
+                </div>
+                <div class="col-12 px-2 mt-3">
+                    <mat-form-field class="w-100" appearance="outline" floatLabel="always">
+                        <mat-label>Uczestnicy</mat-label>
+                        <mat-select [(ngModel)]="selectedProject!.membersIds" placeholder="Wybierz" multiple>
+                            <mat-option *ngFor="let usr of users" [value]="usr.id" [disabled]="selectedProject!.projectManagerId == usr.id">
+                                {{ usr.firstName }} {{ usr.lastName }}
+                            </mat-option>
+                        </mat-select>
+                        <mat-icon svgIcon="close" (click)="selectedProject!.membersIds = []; $event.stopPropagation()"
+                            [class.disabled]="!selectedProject!.membersIds || !selectedProject!.membersIds.length" matSuffix></mat-icon>
+                    </mat-form-field>
+                </div>
+            </ng-container>
+        </mat-sidenav>
+        <mat-sidenav-content class="content">
+            <div class="col-11 p-0 d-flex justify-content-between align-items-center">
+                <div class="col-8 d-flex justify-content-start align-items-center px-2 mt-4">
+                    <button mat-flat-button color="default" class="pill create" (click)="addProject()" [disabled]="!canProjectsCreate">
+                        <mat-icon svgIcon="add"></mat-icon> Utwórz nowy
+                    </button>
+                </div>
+                <div class="col-4 d-flex justify-content-end align-items-center px-2 mt-4">
+                    <mat-form-field class="w-100 ellipsis-input" appearance="outline" floatLabel="always">
+                        <mat-label>Filtruj</mat-label>
+                        <mat-icon matPrefix>search</mat-icon>
+                        <input matInput [(ngModel)]="filterValue" (keyup)="applyFilter($event)" placeholder="..."
+                            #input>
+                        <button *ngIf="filterValue && filterValue.length" mat-icon-button matSuffix aria-label="Wyczyść"
+                            (click)="resetFilter()" class="mat-icon-button-small mr-1">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    </mat-form-field>
+                </div>
+            </div>
+            <div class="col-11 d-flex justify-content-center align-items-start p-2 flex-wrap">
+                <table mat-table [dataSource]="dataSource" class="crm-table" matSort matSortActive="name">
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Nazwa </th>
+                        <td mat-cell *matCellDef="let element"> 
+                            {{element.name}} 
+                            <ng-component *ngIf="element.stateIcon">
+                                <mat-icon [ngClass]="element.stateIconClass ?? 'icon-default'" [svgIcon]="element.stateIcon"
+                                    matTooltip="{{element.stateName}}"></mat-icon>
+                            </ng-component>
+                        </td>
+                    </ng-container>
+                    <ng-container matColumnDef="startDate">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Data rozpoczęcia </th>
+                        <td mat-cell *matCellDef="let element"> 
+                            <ng-container *ngIf="element.startDate">
+                                {{ element.startDate | date: 'dd.MM.yyyy' }} 
+                            </ng-container>
+                        </td>
+                    </ng-container>
+                    <ng-container matColumnDef="endDate">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Data zakończenia </th>
+                        <td mat-cell *matCellDef="let element"> 
+                            <ng-container *ngIf="element.endDate">
+                                {{ element.endDate | date: 'dd.MM.yyyy' }} 
+                            </ng-container>
+                        </td>
+                    </ng-container>
+                    <ng-container matColumnDef="projectManager">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Manager projektu </th>
+                        <td mat-cell *matCellDef="let element"> 
+                            <ng-container *ngIf="element.projectManager">
+                                {{ element.projectManager.firstName }} {{ element.projectManager.lastName }}
+                            </ng-container>
+                        </td>
+                    </ng-container>
+                    <ng-container matColumnDef="contractor">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Kontrahent </th>
+                        <td mat-cell *matCellDef="let element"> 
+                            <ng-container *ngIf="element.contractor">
+                                {{ element.contractor.displayName }}
+                            </ng-container>
+                        </td>
+                    </ng-container>
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef>  </th>
+                        <td mat-cell *matCellDef="let element"> 
+                            <div class="d-flex justify-content-end align-items-center">
+                                <button matIconButton color="danger" class="d-flex mat-icon-button-medium" 
+                                    (click)="deleteProject(element)" [disabled]="!canProjectsDelete">
+                                    <mat-icon svgIcon="delete"></mat-icon>
+                                </button>
+                                <button matIconButton color="default"  class="d-flex mat-icon-button-medium" 
+                                    (click)="editProject(element)" [disabled]="!canProjectsUpdate">
+                                    <mat-icon svgIcon="edit"></mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                    <tr class="mat-row" *matNoDataRow>
+                        <td class="mat-cell" colspan="5">
+                            <h5 class="info-text p-4" *ngIf="projects && projects.length !== 0 && filterValue">
+                                Brak danych spełniających warunki filtra
+                            </h5>
+                            <h5 class="info-text p-4" *ngIf="!projects || projects.length === 0">
+                                Dodaj projekty, aby móc tworzyć dedykowane dla nich notatniki i dokumenty
+                            </h5>
+                        </td>
+                    </tr>
+                </table>
+                <div class="col-10 p-0 d-flex justify-content-end align-items-center">
+                    <mat-paginator [pageSizeOptions]="[25, 50, 100, 250]" [showFirstLastButtons]="true" [pageSize]="25">
+                    </mat-paginator>
+                </div>
+            </div>
+        </mat-sidenav-content>
+    </mat-sidenav-container>
+</div>

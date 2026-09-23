@@ -1,0 +1,87 @@
+<div class="cs-shell" *ngIf="contractor">
+  <div class="cs-header">
+    <div class="cs-avatar"><span>{{ initials }}</span></div>
+    <div class="cs-id">
+      <div class="cs-name" [title]="contractor.displayName">{{ contractor.displayName }}</div>
+      <div class="cs-nip" *ngIf="contractor.nip">NIP: {{ contractor.nip }}</div>
+    </div>
+    <button matIconButton class="mat-icon-button-small" matTooltip="Zamknij" (click)="close()">
+      <mat-icon svgIcon="close"></mat-icon>
+    </button>
+  </div>
+
+  <div class="cs-body scrollable">
+    <div class="cs-section" *ngIf="contractor.alternativeNipNumbers && contractor.alternativeNipNumbers.length">
+      <div class="content-kicker">Alternatywne numery NIP · {{ contractor.alternativeNipNumbers!.length }}</div>
+       <ng-container *ngFor="let nip of contractor.alternativeNipNumbers">
+        <div class="cs-alt-nip">{{ nip }}</div>
+       </ng-container>
+    </div>
+    <div class="cs-section">
+      <div class="content-kicker">Osoby kontaktowe · {{ contacts.length }}</div>
+      <div class="cs-empty" *ngIf="!contacts.length">Brak osób kontaktowych</div>
+      <div class="cs-contact" *ngFor="let c of contacts">
+        <div class="cs-contact-name">{{ c.displayName }}</div>
+        <div class="cs-contact-meta" *ngIf="c.position">{{ c.position }}</div>
+        <a class="cs-link" *ngIf="c.email" [href]="'mailto:' + c.email">{{ c.email }}</a>
+        <a class="cs-link" *ngIf="c.phoneNumber" [href]="'tel:' + c.phoneNumber">{{ c.phoneNumber }}</a>
+      </div>
+    </div>
+    <div class="cs-section">
+      <div class="content-kicker">Licencje i dodatki · {{ licenses.length }}</div>
+      <div class="cs-empty" *ngIf="!licenses.length">Brak licencji</div>
+      <div class="cs-row" *ngFor="let l of licenses">
+        <div class="cs-row-main">
+          <div class="cs-row-title">{{ l.catalogItem?.name ?? '—' }}</div>
+          <div class="cs-row-sub">{{ l.licenseTypeName }} · {{ l.validFrom | date:'dd.MM.yyyy' }}<ng-container *ngIf="l.expiresAt"> → {{ l.expiresAt | date:'dd.MM.yyyy' }}</ng-container></div>
+        </div>
+        <div class="cs-qty">{{ l.quantity }} szt.</div>
+      </div>
+    </div>
+
+    <!-- UMOWY -->
+    <div class="cs-section">
+      <div class="content-kicker">Umowy i pakiety · {{ contracts.length }}</div>
+      <div class="cs-empty" *ngIf="!contracts.length">Brak umów</div>
+      <div class="cs-row cs-contract" *ngFor="let c of contracts">
+        <div class="cs-row-icon"><mat-icon>{{ contractIcon(c.engagementType) }}</mat-icon></div>
+        <div class="cs-row-main">
+          <div class="cs-row-title">{{ c.engagementTypeName }}</div>
+          <div class="cs-row-sub">
+            {{ (c.validFrom | date:'dd.MM.yy') ?? '—' }}
+            <ng-container *ngIf="c.validTo">→ {{ c.validTo | date:'dd.MM.yy' }}</ng-container>
+            <span *ngIf="!c.validTo">→ bezterm.</span>
+          </div>
+          <div class="cs-hours" *ngIf="c.hoursLimit">
+            <div class="cs-hours-bar"><span [style.width.%]="hoursPercent(c)"></span></div>
+            <span class="cs-hours-lbl">{{ c.hoursUsed ?? 0 }} / {{ c.hoursLimit }} h</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROJEKTY -->
+    <div class="cs-section">
+      <div class="content-kicker">Projekty · {{ projects.length }}</div>
+      <div class="cs-empty" *ngIf="!projects.length">Brak projektów</div>
+      <div class="cs-row" *ngFor="let p of projects">
+        <div class="cs-state-dot" [class]="'state-' + p.state"></div>
+        <div class="cs-row-main">
+          <div class="cs-row-title">{{ p.name }}</div>
+          <div class="cs-row-sub" *ngIf="p.startDate">
+            {{ p.startDate | date:'dd.MM.yyyy' }}<ng-container *ngIf="p.endDate"> — {{ p.endDate | date:'dd.MM.yyyy' }}</ng-container>
+          </div>
+        </div>
+        <div class="cs-chip">{{ p.stateName }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cs-footer">
+    <button matButton="tonal" class="pill w-100" (click)="openFullCard()">
+      <mat-icon svgIcon="open_in_new"></mat-icon> Otwórz pełną kartę kontrahenta
+    </button>
+  </div>
+</div>
+
+<div class="cs-loading" *ngIf="loading && !contractor">Ładowanie danych kontrahenta…</div>

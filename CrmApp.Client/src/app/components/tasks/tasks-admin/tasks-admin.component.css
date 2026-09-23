@@ -1,0 +1,281 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.admin-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
+}
+
+/* ── toolbar z przełącznikiem widoku ── */
+.admin-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.view-toggle {
+  display: flex;
+  background: color-mix(in srgb, var(--crm-sys-text) 6%, transparent);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 14px;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    color: color-mix(in srgb, var(--crm-sys-text) 55%, transparent);
+    transition: background 140ms ease, color 140ms ease;
+
+    mat-icon { font-size: 16px; width: 16px; height: 16px; line-height: 0; }
+
+    &.active {
+      background: var(--crm-sys-background);
+      color: var(--crm-sys-text);
+      box-shadow: 0 1px 3px color-mix(in srgb, var(--crm-sys-text) 10%, transparent);
+    }
+  }
+}
+
+.total-label {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--crm-sys-text) 50%, transparent);
+}
+
+/* crm-table rozciągnięte do dołu */
+.admin-panel > crm-table {
+  flex: 1;
+  min-height: 0;
+}
+
+/* stats view scrollable */
+.stats-view {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* ── statystyki ── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.stat-card {
+  border: 1px solid color-mix(in srgb, var(--crm-sys-text) 8%, transparent);
+  border-radius: 14px;
+  padding: 12px 16px;
+  background: color-mix(in srgb, var(--crm-sys-background) 98%, white);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stat-num {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--crm-sys-text);
+}
+
+.stat-label {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--crm-sys-text) 55%, transparent);
+}
+
+.stat-card.stat-blue  .stat-num { color: var(--mat-sys-primary); }
+.stat-card.stat-red   .stat-num { color: var(--mat-sys-error); }
+.stat-card.stat-green .stat-num { color: #3B6D11; }
+
+/* ── obciążenie zespołu ── */
+.workload-section {
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--crm-sys-text) 8%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--crm-sys-background) 98%, white);
+  flex-shrink: 0;
+}
+
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--crm-sys-text) 50%, transparent);
+  margin-bottom: 10px;
+  display: block;
+}
+
+.workload-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workload-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.workload-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.workload-name-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.workload-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--crm-sys-text);
+}
+
+.workload-meta {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--crm-sys-text) 55%, transparent);
+}
+
+.overdue-count { color: var(--mat-sys-error); }
+
+/* ── crm-table rozciągnięte do dołu ── */
+.admin-panel > crm-table {
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── style komórek (ng-template) ── */
+.cell-number {
+  display: block;
+  font-size: 11px;
+  color: color-mix(in srgb, var(--crm-sys-text) 45%, transparent);
+  font-family: monospace;
+  margin-bottom: 1px;
+}
+
+.cell-title {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--crm-sys-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+.cell-sub {
+  display: block;
+  font-size: 11px;
+  color: color-mix(in srgb, var(--crm-sys-text) 50%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+.cell-dim {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--crm-sys-text) 65%, transparent);
+}
+
+.cell-assignee {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cell-empty {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--crm-sys-text) 30%, transparent);
+}
+
+.cell-progress {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  mat-progress-bar { width: 72px; }
+}
+
+.cell-pct {
+  font-size: 11px;
+  color: color-mix(in srgb, var(--crm-sys-text) 55%, transparent);
+  min-width: 28px;
+  text-align: right;
+}
+
+.cell-overdue {
+  color: var(--mat-sys-error);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* ── badges ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-todo     { background: color-mix(in srgb, var(--crm-sys-text) 10%, transparent); color: color-mix(in srgb, var(--crm-sys-text) 70%, transparent); }
+.badge-progress { background: color-mix(in srgb, var(--mat-sys-primary) 15%, transparent); color: var(--mat-sys-primary); }
+.badge-done     { background: color-mix(in srgb, #3B6D11 12%, transparent); color: #3B6D11; }
+.badge-urgent   { background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent); color: var(--mat-sys-error); }
+.badge-normal   { background: color-mix(in srgb, var(--mat-sys-tertiary) 15%, transparent); color: var(--mat-sys-tertiary); }
+.badge-low      { background: color-mix(in srgb, var(--crm-sys-text) 8%, transparent); color: color-mix(in srgb, var(--crm-sys-text) 55%, transparent); }
+.badge-imported { background: color-mix(in srgb, var(--mat-sys-secondary) 15%, transparent); color: var(--mat-sys-secondary); }
+
+/* ── avatar ── */
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  font-weight: 600;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+  background: color-mix(in srgb, var(--mat-sys-tertiary-container) 70%, transparent);
+  color: var(--crm-sys-text);
+
+  &.av-sm {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+    border-radius: 8px;
+  }
+}
+
+/* ── responsive ── */
+@media (max-width: 900px) {
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

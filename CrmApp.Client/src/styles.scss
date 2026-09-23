@@ -1,0 +1,1243 @@
+/* styles.scss */
+@use '@angular/material' as mat;
+@use '@ctrl/ngx-emoji-mart/picker' as emoji;
+@include mat.core();
+
+/* Define themes */
+$light-theme: mat.define-theme((color: (theme-type: light, primary: mat.$azure-palette, tertiary: mat.$blue-palette),
+      density: (scale: 0),
+    ));
+
+$dark-theme: mat.define-theme((color: (theme-type: dark, primary: mat.$cyan-palette, tertiary: mat.$orange-palette),
+      density: (scale: 0),
+    ));
+
+/* Default (light) — emit FULL theme once */
+html {
+  @include mat.all-component-themes($light-theme);
+  --crm-sys-background: var(--mat-sys-background);
+  --crm-sys-text: var(--mat-sys-on-surface);
+  --crm-header-background: #9db3e024;
+  --mat-snack-bar-supporting-text-color: var(--mat-sys-on-surface);
+  --crm-sys-tertiary-container: var(--mat-sys-tertiary-container);
+  --mat-dialog-container-max-width: 100vw;
+  --mat-dialog-container-shape: 0 !important;
+  --mat-form-field-container-height: 36px !important;
+  --mat-form-field-container-vertical-padding: 8px !important;
+  --mat-expansion-container-shape: 8px !important;
+  --mat-table-header-container-height: 36px !important;
+  --mat-table-row-item-container-height: 40px !important;
+  --crm-record-bg-rgb: 145, 172, 227;
+  --crm-suffix-bg: rgb(145, 172, 227);
+  --crm-value-bg: rgb(68, 124, 236);
+  --crm-record-bg: rgb(145, 172, 227);
+  --crm-cancel-bg: rgba(163, 22, 22, 0.521);
+  --crm-record-fg: white;
+  --crm-tonal-success: #8fbf95;
+  --mat-slider-handle-height: 16px;
+  --mat-slider-handle-width: 16px;
+  --clr-idle: rgb(59, 81, 126);
+  --clr-idle-plain: 59, 81, 126;
+  --mat-checkbox-selected-icon-color: var(--mat-fab-small-foreground-color, var(--mat-sys-on-primary-container, inherit));
+  --mat-checkbox-selected-focus-icon-color: var(--mat-fab-small-foreground-color, var(--mat-sys-on-primary-container, inherit));
+  --mat-checkbox-selected-hover-icon-color: var(--mat-fab-small-foreground-color, var(--mat-sys-on-primary-container, inherit));
+  --mat-checkbox-selected-pressed-icon-color: var(--mat-fab-small-foreground-color, var(--mat-sys-on-primary-container, inherit));
+  --mat-checkbox-selected-checkmark-color: var(--mat-fab-small-container-color, var(--mat-sys-primary-container));
+  --mat-form-field-outlined-outline-color: #b2b2b2b8;
+  --mat-form-field-outlined-hover-outline-color: #b2b2b2b8;
+  --mat-form-field-outlined-label-text-color: #464646b8;
+  --mat-chip-container-shape-radius: 16px !important;
+  --mat-button-toggle-height: 32px !important;
+  --mat-form-field-container-height: 36px !important;
+  --mat-form-field-container-vertical-padding: 6px !important;
+  --mat-option-label-text-size: 0.95rem !important;
+  @include mat.autocomplete-overrides((
+    background-color: var(--crm-sys-background),
+  ));
+}
+
+/* Dark — swap ONLY colors under the data attribute */
+html[data-theme="dark"] {
+  @include mat.all-component-colors($dark-theme);
+  --crm-sys-background: #2c2f3c;
+  --crm-sys-text: var(--mat-sys-surface);
+  --crm-header-background: #91ace314;
+  --mat-snack-bar-supporting-text-color: var(--mat-sys-surface);
+  --mat-snack-bar-container-color: #202020;
+  --crm-record-bg-rgb: 78, 127, 127;
+  --crm-record-bg: rgb(78, 127, 127);
+  --crm-suffix-bg: rgb(78, 127, 127);
+  --crm-value-bg: rgb(64, 179, 179);
+  --crm-tonal-success: #617c64;
+  --mat-sys-primary: #00ffff;
+  --mat-sys-secondary: #7b8499;
+  --mat-sys-on-surface-variant: #b4b4b4;
+  --crm-sys-tertiary-container: var(--crm-suffix-bg);
+  --crm-cancel-bg: #da81817a;
+  --crm-record-fg: var(--crm-sys-text);
+  --clr-idle: rgb(255, 255, 255);
+  --clr-idle-plain: 255, 255, 255;
+  --mat-checkbox-selected-icon-color: var(--mat-fab-small-foreground-color, var(--mat-sys-on-primary-container, inherit));
+  --mat-checkbox-selected-focus-icon-color: var(--mat-fab-small-foreground-color, var(--mat-sys-on-primary-container, inherit));
+  --mat-checkbox-selected-hover-icon-color: var(--mat-fab-small-foreground-color, var(--mat-sys-on-primary-container, inherit));
+  --mat-checkbox-selected-pressed-icon-color: var(--mat-fab-small-foreground-color, var(--mat-sys-on-primary-container, inherit));
+  --mat-checkbox-selected-checkmark-color: #003737;
+  --mat-sys-primary-container: #535b6f;
+  --mat-sys-primary: #004f4f;
+  
+  .mention {
+    background-color: color-mix(in oklab, var(--mat-sys-primary) 18%, transparent) !important;
+  }
+}
+
+/* Page colors driven by Material system tokens */
+html {
+  color-scheme: light dark;
+  background-color: var(--crm-sys-background) !important;
+}
+
+body {
+  margin: 0;
+  min-width: 100vw;
+  min-height: 100vh;
+  --mat-form-field-filled-container-shape: 8px !important;
+  --mat-form-field-container-text-size: 0.95rem !important;
+}
+
+@supports (height: 100dvh) {
+  body {
+    min-height: 100dvh;
+    /* "dynamic" viewport */
+  }
+}
+
+html[data-theme="light"] body {
+  --mat-sys-outline: rgba(121, 121, 121, 0.4);
+  background: var(--mat-sys-background);
+  color: var(--mat-sys-on-surface);
+  --mat-sidenav-container-divider-color: var(--mat-sys-outline);
+}
+
+html[data-theme="dark"] body {
+  background: var(--mat-sys-on-background);
+  color: var(--mat-sys-surface);
+  --mat-sidenav-container-divider-color: var(--mat-sys-outline);
+}
+
+html[data-theme="light"] .header-title {
+  color: var(--mat-sys-on-surface);
+}
+
+html[data-theme="dark"] .header-title {
+  color: var(--mat-sys-surface);
+}
+
+/* Optional: theme variables you flip with your light/dark class */
+:root[data-theme="light"] {
+  --sb-track: transparent;
+  --sb-thumb: rgba(0, 0, 0, 0.38);
+  --sb-thumb-hover: rgba(0, 0, 0, 0.54);
+  --sb-thumb-active: rgba(0, 0, 0, 0.87);
+}
+
+:root[data-theme="dark"] {
+  --sb-track: transparent;
+  --sb-thumb: rgba(255, 255, 255, 0.35);
+  --sb-thumb-hover: rgba(255, 255, 255, 0.55);
+  --sb-thumb-active: rgba(255, 255, 255, 0.8);
+}
+
+/* Scope to this form field so you don't theme every textarea */
+.scrollable-textarea textarea[matInput] {
+  /* Ensure scrolling can happen */
+  max-height: 220px;
+  /* adjust to taste */
+  overflow: auto;
+  resize: vertical;
+  /* or `none` if you don’t want the resize handle */
+
+  /* Firefox (CSS Scrollbars spec) */
+  scrollbar-width: thin;
+  scrollbar-color: var(--sb-thumb) var(--sb-track);
+
+  /* Chromium/WebKit */
+  &::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: var(--sb-track);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 8px;
+    background-clip: padding-box;
+    border: 2px solid transparent;
+    /* inset look */
+    background-color: var(--sb-thumb);
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: var(--sb-thumb-hover);
+  }
+
+  &::-webkit-scrollbar-thumb:active {
+    background-color: var(--sb-thumb-active);
+  }
+}
+
+
+:root {
+  @include mat.snack-bar-overrides((container-color: --crm-sys-background));
+}
+
+.icon-circle {
+  border-radius: 100% !important;
+  vertical-align: middle;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 24px;
+  height: 24px;
+}
+
+.mat-icon.sys-color {
+  color: var(--crm-sys-text) !important;
+  fill: var(--crm-sys-text) !important;
+}
+
+svg {
+  color: inherit !important;
+  fill: inherit !important;
+  // width: 100% !important;
+  // height: 100% !important;
+}
+
+.no-shadow {
+  box-shadow: none !important;
+}
+
+.mat-mdc-fab-base .mat-icon {
+  height: 80%;
+  width: 80%;
+}
+
+button.no-action {
+  touch-action: none;
+  pointer-events: none;
+}
+
+.mat-mdc-menu-content {
+  padding: 0px !important;
+  min-width: 150px !important;
+}
+
+.color-default {
+  color: var(--mat-sys-on-surface);
+}
+
+.mat-icon-button-small {
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  min-height: 30px !important;
+  font-size: 16px !important;
+  // padding: 2px !important;
+}
+
+.mat-icon-button-small .mat-icon {
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 16px !important;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mat-mdc-icon-button img,
+.mat-mdc-icon-button svg {
+  vertical-align: middle !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mat-icon-button-medium {
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  font-size: 18px !important;
+  // padding: 2px !important;
+}
+
+.mat-icon-button-medium .mat-icon {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  min-height: 18px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.mat-icon-button-medium .mat-mdc-icon-button img {
+  vertical-align: middle !important;
+}
+
+.icon-danger,
+.text-danger,
+.mat-mdc-mini-fab[color="danger"],
+.mat-mdc-mini-fab[color="error"] {
+  color: rgb(254, 46, 46) !important;
+  fill: rgb(255, 46, 46) !important;
+}
+
+.icon-success,
+.mat-icon.success,
+.mat-mdc-mini-fab[color="success"] {
+  color: rgb(54, 139, 54) !important;
+  fill: rgb(54, 139, 54) !important;
+}
+
+.mat-mdc-mini-fab[color="success"] {
+  background-color: rgb(54 139 54 / 21%) !important;
+}
+
+.mat-mdc-mini-fab[color="danger"] {
+  background-color: rgb(254 46 46 / 21%) !important;
+}
+
+.mat-mdc-mini-fab[disabled],
+.mat-mdc-mini-fab.mat-mdc-button-disabled {
+  color: var(--mat-fab-small-disabled-state-foreground-color, color-mix(in srgb, var(--mat-sys-on-surface) 38%, transparent)) !important;
+  background-color: var(--mat-fab-small-disabled-state-container-color, color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent)) !important;
+}
+
+.mat-icon.error {
+  color: rgb(211, 55, 55) !important;
+  fill: rgb(211, 55, 55) !important;
+}
+
+.mat-icon.info {
+  color: rgb(19, 112, 173) !important;
+  fill: rgb(19, 112, 173) !important;
+}
+
+.mat-icon.question {
+  color: rgb(0, 183, 255) !important;
+  fill: rgb(0, 183, 255) !important;
+}
+
+.mat-icon.warning {
+  color: rgb(204, 127, 27) !important;
+  fill: rgb(204, 127, 27) !important;
+}
+
+html[data-theme="dark"] body {
+  mat-card.notebook-card {
+    background: var(--mat-sys-on-secondary-container) !important;
+    border-color: var(--mat-radio-checked-ripple-color);
+    color: var(--mat-radio-checked-ripple-color);
+  }
+
+  mat-card.notebook-card:hover {
+    border-color: var(--mat-radio-checked-ripple-color);
+  }
+
+  mat-card.notebook-card.is-active {
+    border-color: var(--mat-radio-checked-ripple-color);
+  }
+
+  mat-card.notebook-card.is-active .card-title,
+  mat-card.notebook-card.is-active .card-top .mat-icon.icon-default {
+    color: var(--mat-radio-checked-ripple-color) !important;
+    fill: 0 0 var(--mat-radio-checked-ripple-color) !important;
+  }
+}
+
+.error {
+  color: rgb(155, 0, 0) !important;
+  fill: rgb(155, 0, 0) !important;
+}
+
+.mdc-checkbox__checkmark {
+  color: var(--mat-checkbox-selected-checkmark-color, var(--mat-sys-on-primary)) !important;
+  fill: var(--mat-checkbox-selected-checkmark-color, var(--mat-sys-on-primary)) !important;
+}
+
+.mat-mdc-snack-bar-container {
+  background-color: var(--crm-sys-background) !important;
+  color: var(--crm-sys-text) !important;
+}
+
+.mat-drawer {
+  border-radius: 0 !important;
+  background-color: var(--crm-sys-background) !important;
+}
+
+.row {
+  width: 100%;
+}
+
+.crm-container {
+  display: flex;
+  align-items: stretch;
+  height: calc(100vh - 48px) !important;
+  overflow: auto;
+  justify-content: center;
+}
+
+.mat-mdc-unelevated-button:not(:disabled) {
+  fill: var(--mat-button-filled-label-text-color, var(--mat-sys-on-primary)) !important;
+}
+
+.pill, .pill-sm {
+  border-radius: 9999px;
+  padding-inline: 14px;
+  height: 38px;
+  border-color: var(--mat-form-field-outlined-outline-color, var(--mat-sys-outline)) !important;
+  min-width: fit-content !important;
+  /* font-weight: 600; */
+
+  .mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    margin-left: 4px;
+  }
+}
+
+.pill-sm {
+  height: 32px !important;
+  font-size: 13px !important;
+}
+
+.return-btn {
+  background-color: transparent !important;
+  border: 1px solid var(--mat-fab-small-container-color, var(--mat-sys-primary-container)) !important;
+}
+
+.return-btn .mat-icon {
+  height: 24px;
+  width: 24px;
+}
+
+.mat-icon.icon-big {
+  height: 52px !important;
+  width: 52px !important;
+  padding: 6px !important;
+}
+
+.mat-icon.icon-filled {
+  background-color: var(--mat-fab-small-container-color, var(--mat-sys-primary-container)) !important;
+  border-radius: var(--mat-icon-button-container-shape) !important;
+}
+
+html[data-theme="light"] .mat-icon.icon-filled {
+  color: var(--mat-sys-secondary) !important;
+}
+
+html[data-theme="dark"] .mat-icon.icon-filled {
+  color: var(--crm-sys-text) !important;
+}
+
+.mat-drawer-container {
+  height: 100%;
+  background-color: var(--crm-sys-background) !important;
+}
+
+.text-secondary {
+  color: var(--mat-sys-secondary) !important;
+}
+
+.flex-wrap {
+  flex-wrap: wrap !important;
+}
+
+.text-align-left {
+  text-align: left !important;
+}
+
+.mat-mdc-select-arrow {
+  color: var(--crm-sys-text) !important;
+}
+
+.mat-mdc-select-arrow,
+.mat-mdc-select-arrow svg,
+span.mat-expansion-indicator,
+span.mat-expansion-indicator>svg {
+  color: var(--crm-sys-text) !important;
+  fill: var(--crm-sys-text) !important;
+}
+
+.overflow-auto {
+  overflow: auto !important;
+}
+
+.no-label .mat-icon {
+  margin: 0 !important;
+}
+
+.btn-small {
+  height: fit-content !important;
+}
+
+.mat-mdc-menu-item.btn-small {
+  min-height: 36px !important;
+  height: 36px !important;
+  padding-right: 8px !important;
+  padding-left: 8px !important;
+}
+
+.btn-small,
+.btn-small span {
+  font-size: 12px !important;
+}
+
+.mdc-button.btn-small.no-label {
+  min-width: 46px !important;
+}
+
+.pr-0 {
+  padding-right: 0px !important;
+}
+
+.pl-0 {
+  padding-left: 0px !important;
+}
+
+.mat-mdc-table,
+.mat-mdc-paginator {
+  background-color: var(--crm-sys-background) !important;
+}
+
+button.mdc-icon-button.mat-mdc-icon-button.mat-mdc-button-base.d-flex.mat-icon-button-medium.mat-danger,
+button.mdc-icon-button.mat-mdc-icon-button.mat-mdc-button-base.d-flex.mat-danger {
+  color: rgb(155, 0, 0) !important;
+  fill: rgb(155, 0, 0) !important;
+}
+
+.mat-tonal-button:not(:disabled).mat-success {
+  background-color: var(--crm-tonal-success) !important;
+  color: white !important;
+}
+
+.ellipsis-btn,
+.ellipsis-fab-btn {
+  max-width: 100% !important;
+  border-color: var(--mat-form-field-outlined-outline-color, var(--mat-sys-outline)) !important;
+}
+
+.ellipsis-fab-btn.mat-mdc-mini-fab,
+.ellipsis-fab-btn.mat-mdc-fab {
+  border-radius: 50% !important;
+  border-color: var(--mat-form-field-outlined-outline-color, var(--mat-sys-outline)) !important;
+}
+
+.ellipsis-fab-btn.mat-mdc-fab-base::before {
+  border: 1px solid var(--mat-form-field-outlined-outline-color, var(--mat-sys-outline)) !important;
+}
+
+.ellipsis-btn .mat-mdc-outlined-button {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.ellipsis-btn .btn-label,
+.ellipsis-btn .mdc-button__label,
+.ellipsis-btn.mdc-button .mdc-button__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.full-width .ellipsis-btn .btn-label,
+.full-width .ellipsis-btn .mdc-button__label,
+.full-width .ellipsis-btn.mdc-button .mdc-button__label {
+  text-align: left !important;
+}
+
+.mat-mdc-progress-spinner circle {
+  color: transparent !important;
+  fill: transparent !important;
+}
+
+.crm-emoji .emoji-mart-emoji {
+  display: flex !important;
+}
+
+.picker {
+  cursor: pointer;
+}
+
+.bg-transparent {
+  background-color: transparent !important;
+}
+
+.mat-mdc-menu-panel {
+  background-color: var(--crm-sys-background) !important;
+  min-width: 200px !important;
+  overflow: unset !important;
+}
+
+.mat-button-toggle-standalone:not([class*=mat-elevation-z]),
+.mat-button-toggle-group:not([class*=mat-elevation-z]) {
+  box-shadow: none !important;
+}
+
+// /* Optional: make recording dialog roomy */
+// .mdc-dialog .mdc-dialog__content {
+//   max-height: 72vh;
+// }
+
+.mr-2,
+.mx-2 {
+  margin-right: .5rem !important;
+}
+
+.ml-2,
+.mx-2 {
+  margin-left: .5rem !important;
+}
+
+@media (max-width: 480px) {
+
+  .p-1,
+  .py-1,
+  .pt-1 {
+    padding-top: 0.15rem !important;
+  }
+
+  .p-1,
+  .py-1,
+  .pb-1 {
+    padding-bottom: 0.15rem !important;
+  }
+
+  .p-1,
+  .px-1,
+  .pr-1 {
+    padding-right: 0.15rem !important;
+  }
+
+  .p-1,
+  .px-1,
+  .pl-1 {
+    padding-left: 0.15rem !important;
+  }
+
+  .p-2,
+  .py-2,
+  .pt-2 {
+    padding-top: 0.25rem !important;
+  }
+
+  .p-2,
+  .py-2,
+  .pb-2 {
+    padding-bottom: 0.25rem !important;
+  }
+
+  .p-2,
+  .px-2,
+  .pr-2 {
+    padding-right: 0.25rem !important;
+  }
+
+  .p-2,
+  .px-2,
+  .pl-2 {
+    padding-left: 0.25rem !important;
+  }
+
+  .p-3,
+  .py-3,
+  .pt-3 {
+    padding-top: 0.5rem !important;
+  }
+
+  .p-3,
+  .py-3,
+  .pb-3 {
+    padding-bottom: 0.5rem !important;
+  }
+
+  .p-3,
+  .px-3,
+  .pr-3 {
+    padding-right: 0.5rem !important;
+  }
+
+  .p-3,
+  .px-3,
+  .pl-3 {
+    padding-left: 0.5rem !important;
+  }
+
+  .p-4,
+  .py-4,
+  .pt-4 {
+    padding-top: 0.75rem !important;
+  }
+
+  .p-4,
+  .py-4,
+  .pb-4 {
+    padding-bottom: 0.75rem !important;
+  }
+
+  .p-4,
+  .px-4,
+  .pr-4 {
+    padding-right: 0.75rem !important;
+  }
+
+  .p-4,
+  .px-4,
+  .pl-4 {
+    padding-left: 0.75rem !important;
+  }
+
+  .m-1,
+  .my-1,
+  .mt-1 {
+    margin-top: 0.15rem !important;
+  }
+
+  .m-1,
+  .my-1,
+  .mb-1 {
+    margin-bottom: 0.15rem !important;
+  }
+
+  .m-1,
+  .mx-1,
+  .mr-1 {
+    margin-right: 0.15rem !important;
+  }
+
+  .m-1,
+  .mx-1,
+  .ml-1 {
+    margin-left: 0.15rem !important;
+  }
+
+  .m-2,
+  .my-2,
+  .mt-2 {
+    margin-top: 0.25rem !important;
+  }
+
+  .m-2,
+  .my-2,
+  .mb-2 {
+    margin-bottom: 0.25rem !important;
+  }
+
+  .m-2,
+  .mx-2,
+  .mr-2 {
+    margin-right: 0.25rem !important;
+  }
+
+  .m-2,
+  .mx-2,
+  .ml-2 {
+    margin-left: 0.25rem !important;
+  }
+
+  .m3,
+  .my-3,
+  .mt-3 {
+    margin-top: 0.5rem !important;
+  }
+
+  .m3,
+  .my-3,
+  .mb-3 {
+    margin-bottom: 0.5rem !important;
+  }
+
+  .m3,
+  .mx-3,
+  .mr-3 {
+    margin-right: 0.5rem !important;
+  }
+
+  .m3,
+  .mx-3,
+  .ml-3 {
+    margin-left: 0.5rem !important;
+  }
+
+  .m4,
+  .my-4,
+  .mt-4 {
+    margin-top: 0.75rem !important;
+  }
+
+  .m4,
+  .my-4,
+  .mb-4 {
+    margin-bottom: 0.75rem !important;
+  }
+
+  .m4,
+  .mx-4,
+  .mr-4 {
+    margin-right: 0.75rem !important;
+  }
+
+  .m4,
+  .mx-4,
+  .ml-4 {
+    margin-left: 0.75rem !important;
+  }
+
+  .row,
+  .container,
+  .container-fluid {
+    --bs-gutter-x: 1rem !important;
+  }
+
+  .no-label {
+    min-width: 34px !important;
+  }
+}
+
+/* Angular Material v15+ uses .mat-mdc-dialog-panel */
+.cdk-overlay-pane,
+.mat-mdc-dialog-panel {
+  max-width: 100vw !important;
+  margin: 0 !important;
+}
+
+/* Extra safety: prevent the dialog content from creating overflow */
+.mat-mdc-dialog-surface,
+.mat-mdc-dialog-container,
+.mat-dialog-content {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.mat-mdc-dialog-container {
+  border: 1px solid var(--mat-sys-outline) !important;
+  border-radius: 8px !important;
+}
+
+@media (max-width: 1400px) {
+
+  html,
+  body {
+    overflow-x: hidden;
+    --mat-slide-toggle-state-layer-size: 32px !important;
+    --mat-slide-toggle-track-height: 28px !important;
+    --mat-slide-toggle-with-icon-handle-size: 20px !important;
+    --mat-slide-toggle-selected-handle-size: 18px !important;
+    --mat-slide-toggle-pressed-handle-size: 18px !important;
+    --mat-button-outlined-horizontal-padding: 18px !important;
+    --mat-button-tonal-horizontal-padding: 18px !important;
+    --mat-button-outlined-container-height: 34px !important;
+    --mat-button-tonal-container-height: 34px !important;
+  }
+}
+
+@media (max-width: 599px) {
+
+  html,
+  body {
+    --mat-button-tonal-horizontal-padding: 10px !important;
+  }
+
+  .cdk-overlay-pane.mat-mdc-dialog-panel {
+    max-width: 100vw !important;
+  }
+
+  .w-100,
+  .col-12 {
+    max-width: 100vw;
+  }
+}
+
+.mdc-checkbox__background {
+  border-radius: 5px !important;
+}
+
+.ellipsis-input .mdc-notched-outline__leading {
+  border-top-left-radius: 22px !important;
+  border-bottom-left-radius: 22px !important;
+}
+
+.ellipsis-input .mdc-notched-outline__trailing {
+  border-top-right-radius: 22px !important;
+  border-bottom-right-radius: 22px !important;
+}
+
+.ellipsis-input .mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__leading {
+  width: 22px !important;
+}
+
+.mdc-text-field--outlined {
+  height: 36px !important;
+}
+
+.mat-button-toggle-group-appearance-standard .mat-button-toggle-appearance-standard+.mat-button-toggle-appearance-standard,
+.mat-button-toggle-standalone.mat-button-toggle-appearance-standard,
+.mat-button-toggle-group-appearance-standard {
+  border-color: var(--mat-form-field-outlined-outline-color, var(--mat-sys-outline)) !important;
+}
+
+.no-label .mdc-button__label {
+  display: none !important;
+}
+
+.flex-reverse {
+  flex-direction: column-reverse !important;
+}
+
+.text-left {
+  text-align: left !important;
+}
+
+crm-pretty-select.full-width,
+crm-pretty-tree-select.full-width {
+  width: 100% !important;
+}
+
+crm-pretty-select.full-width>button.mdc-button,
+crm-pretty-tree-select.full-width>button.mdc-button {
+  width: 100% !important;
+}
+
+crm-pretty-select.h-40>button.mdc-button,
+crm-pretty-tree-select.h-40>button.mdc-button {
+  height: 40px !important;
+}
+
+.mat-tonal-button.mat-error {
+  background-color: #ff8d8d !important;
+  color: #620101 !important;
+}
+
+.page {
+  width: 100%;
+  margin: 0 auto;
+}
+
+.h-98 {
+  height: 98% !important;
+}
+
+.mat-mdc-snack-bar-container .mat-mdc-snackbar-surface {
+  color: var(--mat-snack-bar-supporting-text-color, var(--mat-sys-inverse-on-surface)) !important;
+  border-radius: var(--mat-snack-bar-container-shape, var(--mat-sys-corner-extra-small)) !important;
+  background-color: var(--mat-snack-bar-container-color, var(--mat-sys-inverse-surface)) !important;
+}
+
+.mat-mdc-mini-fab {
+  height: 36px !important;
+  width: 36px !important;
+}
+
+@media (max-width: 600px) {
+  .mat-mdc-mini-fab {
+    height: 34px !important;
+    width: 34px !important;
+  }
+}
+
+.mt-2px {
+  margin-top: 2px !important;
+}
+
+.display-none {
+  display: none !important;
+}
+
+.rotate-45 {
+  transform: rotate(45deg) !important;
+}
+
+.pin-to-right {
+  right: 0 !important;
+  position: absolute;
+}
+
+.pin-to-bottom-left {
+  left: 0 !important;
+  bottom: 5px !important;
+  position: absolute;
+}
+
+.pin-to-left {
+  left: 0 !important;
+  position: absolute;
+}
+
+.float-left {
+  float: left;
+}
+
+.mat-fab-smaller {
+  height: 30px !important;
+  width: 30px !important;
+  border-radius: 8px !important;
+}
+
+.docx-preview {
+  margin-top: 8px !important;
+  width: 60% !important;
+  padding: 8px !important;
+  border: 1px solid var(--mat-sys-outline) !important;
+  border-radius: 8px !important;
+  text-align: justify !important;
+}
+
+.docx-preview tbody,
+.docx-preview td,
+.docx-preview th {
+  border-width: 1px !important;
+}
+
+.docx-preview table {
+  font-size: smaller !important;
+}
+
+.txt-preview {
+  width: 60% !important;
+  padding: 8px !important;
+  white-space: pre-wrap;
+  text-align: justify !important;
+}
+
+.txt-preview.w-100 {
+  width: 100% !important;
+}
+
+@media (max-width: 600px) {
+  .docx-preview {
+    width: 100% !important;
+  }
+}
+
+.preview-pane {
+  max-height: 82vh;
+  min-height: 82vh;
+}
+
+quill-editor.crm-quill,
+.crm-quill quill-editor {
+  display: block !important;
+  width: 100% !important;
+}
+
+.crm-quill .ql-container.ql-snow {
+  min-height: 50px !important;
+  max-height: 30vh !important;  
+  height: auto !important;
+}
+
+.crm-quill .ql-editor {
+  min-height: 50px !important;
+  max-height: 30vh !important;
+  overflow-y: auto !important;
+}
+
+.mat-mdc-form-field-subscript-wrapper {
+  display: none;
+}
+
+.input-with-error-under .mat-mdc-form-field-subscript-wrapper {
+  display: block !important;
+}
+
+.crm-quill .ql-toolbar.ql-snow {
+  display: flex !important;
+  flex-wrap: wrap !important;
+}
+
+.docx-preview.scrollable {
+  overflow-y: auto;
+}
+
+.settings-input span.mdc-button__label {
+  text-align: start !important;
+}
+
+.cdk-overlay-backdrop {
+  background: rgb(0 0 0 / 48%) !important;
+}
+
+.mat-sort-header-arrow svg {
+  color: var(--mat-sort-arrow-color) !important;
+  fill: var(--mat-sort-arrow-color) !important;
+}
+
+.pretty-select-label{
+  color: color-mix(in srgb, var(--crm-sys-text) 50%, transparent) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  text-align: left;
+  padding-left: 20px;
+}
+
+:host ::ng-deep td.ql-cell-focused,
+:host ::ng-deep .ql-cell-focused::after {
+  border: 1px solid #808080 !important;
+}
+
+.button-large { 
+  min-height: 52px !important;
+  padding: 12px 28px !important;
+  height: 62px !important;
+}
+.button-large span.mdc-button__label { 
+  font-size: 32px !important;
+}
+
+.mat-drawer-content {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;  
+}
+mat-sidenav-container,
+mat-sidenav-content {
+  height: 100% !important;
+}
+
+.header-icon-btn {
+  background-color: var(--mat-button-tonal-container-color, var(--mat-sys-secondary-container)) !important;
+}
+
+.header-icon-btn.mat-tonal-button {
+  padding: 10px !important;
+}
+
+.mat-mdc-text-field-wrapper {
+  height: auto !important;
+}
+
+mat-icon.svg-align-middle>svg {
+  vertical-align: -webkit-baseline-middle !important;
+}
+
+.crm-fullscreen-dialog .mat-mdc-dialog-container { padding: 0; }
+.crm-fullscreen-dialog .mat-mdc-dialog-surface { border-radius: 16px; }
+
+.mat-tree {
+  background-color: var(--crm-sys-background) !important;
+}
+
+.ql-editor.ql-blank::before {
+  color: color-mix(in srgb, var(--crm-sys-text) 45%, transparent) !important;
+}
+
+.ql-snow .ql-fill {
+  fill: var(--crm-sys-text) !important;
+}
+
+.ql-snow .ql-picker-options {
+  background-color: var(--crm-sys-background) !important;
+}
+
+.ql-snow .ql-stroke:not(.ql-color-label) {
+  stroke: var(--crm-sys-text) !important;
+}
+
+.ql-snow .ql-picker-label, 
+.ql-snow .ql-stroke:not(.ql-color-label), 
+.ql-snow .ql-fill, 
+.ql-snow .ql-picker {
+  color: var(--crm-sys-text) !important;
+}
+
+.ql-snow button:hover,
+.ql-snow button:hover .ql-stroke:not(.ql-color-label),
+.ql-snow button:active,
+.ql-snow button:active .ql-stroke:not(.ql-color-label) {
+  color: var(--crm-value-bg) !important;
+  stroke: var(--crm-value-bg) !important;
+}
+
+.ql-snow .ql-picker-label:hover, 
+.ql-snow .ql-picker-label:active,
+.ql-snow .ql-picker:hover, 
+.ql-snow .ql-picker:active,
+.ql-snow button:hover .ql-fill, 
+.ql-snow button:active .ql-fill {
+  color: var(--crm-value-bg) !important;
+}
+
+.ql-snow .ql-picker-label:hover .ql-stroke:not(.ql-color-label), 
+.ql-snow .ql-picker-label:active .ql-stroke:not(.ql-color-label),
+.ql-snow .ql-picker:hover .ql-stroke:not(.ql-color-label), 
+.ql-snow .ql-picker:active .ql-stroke:not(.ql-color-label),
+.ql-snow .ql-picker-label:hover .ql-fill, 
+.ql-snow .ql-picker-label:active .ql-fill,
+.ql-snow .ql-picker:hover .ql-fill, 
+.ql-snow .ql-picker:active .ql-fill,
+.ql-snow button:hover .ql-fill, .ql-snow button:active .ql-fill {
+  fill: var(--crm-value-bg) !important;
+}
+
+.field-compact .mat-mdc-text-field-wrapper,
+.field-compact .mat-mdc-icon-button {
+  min-height: 30px !important;
+}
+
+.field-compact .mat-mdc-form-field-infix {
+  min-height: 30px !important;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+  font-size: 0.9rem !important;
+}
+
+.field-compact .mat-mdc-select,
+.field-compact .mat-mdc-form-field {
+  font-size: 0.9rem !important;
+}
+
+.field-compact .mat-mdc-icon-button .mat-mdc-button-touch-target {
+  font-size: 0.9rem !important;
+  height: 22px !important;
+  width: 22px !important;
+}
+
+.ellipsis-input.field-compact .mdc-notched-outline__leading {
+  border-top-left-radius: 16px !important;
+  border-bottom-left-radius: 16px !important;
+}
+
+.ellipsis-input.field-compact .mdc-notched-outline__trailing {
+  border-top-right-radius: 16px !important;
+  border-bottom-right-radius: 16px !important;
+}
+
+.field-compact .mat-datepicker-toggle .mat-mdc-icon-button {
+  height: 30px !important;
+  width: 30px !important;
+  padding: 4px !important;
+}
+
+.field-compact .mat-datepicker-toggle .mat-mdc-icon-button svg {
+  height: 20px !important;
+  width: 20px !important;
+  font-size: 0.9rem !important;
+}
+
+.mat-mdc-slider {
+  height: 36px !important;
+}
+
+.mdc-slider__thumb {
+  height: 36px !important;
+  width: 36px !important;
+}
