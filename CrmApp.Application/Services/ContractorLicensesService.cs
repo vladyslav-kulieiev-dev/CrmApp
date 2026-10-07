@@ -36,7 +36,7 @@ namespace CrmApp.Application.Services
             return $"CI{catalogItemId}-{datePart}-{randomPart}";
         }
         private static readonly char[] _chars =
-            "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".ToCharArray(); 
+            "ABCDEFGHIJKLMNPQRSTUVWXYZ23456789".ToCharArray(); 
         private static string GenerateRandomAlphanumeric(int length)
         {
             var result = new char[length];
